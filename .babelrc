@@ -1,0 +1,39 @@
+{
+    "presets": [
+        [
+            "env",
+            {
+                "targets": {
+                    "node": 6
+                },
+                "useBuiltIns": true,
+                "modules": false
+            }
+        ],
+        "es2015",
+        "stage-0"
+    ],
+    "plugins": [
+        "add-module-exports",
+    ],
+    "env": {
+        "production": {
+            "presets": [
+                "minify"
+            ],
+            "plugins": [
+                "babel-plugin-dev-expression",
+                "transform-es2015-destructuring",
+                "transform-object-rest-spread"
+            ]
+        },
+        "development": {
+            "plugins": [
+                "transform-class-properties",
+                "transform-es2015-classes",
+                "transform-es2015-destructuring",
+                "transform-object-rest-spread"
+            ]
+        }
+    }
+}

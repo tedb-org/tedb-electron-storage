@@ -1,0 +1,27 @@
+{
+    "extends": "./configs/base.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "typeRoots": [
+            "node_modules/@types",
+            "node_modules"
+        ],
+        "types": [
+            "jest",
+            "node",
+            "webpack"
+        ],
+        "outDir": "./",
+        "lib": ["es6", "es2015", "es2017"]
+    },
+    "include": [
+        "src/",
+        "node_modules/**/*.d.ts"
+    ],
+    "exclude": [
+        "dist",
+        "node_modules",
+        "spec",
+        "webpack"
+    ]
+}

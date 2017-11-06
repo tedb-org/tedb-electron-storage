@@ -1,0 +1,18 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "strict": true,
+        "pretty": true,
+        "sourceMap": true,
+        "declaration": true,
+        "importHelpers": true,
+        "removeComments": false,
+        "noImplicitAny": true,
+        "noEmitOnError": true,
+        "strictNullChecks": true
+    }
+}
