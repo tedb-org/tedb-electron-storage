@@ -1,11 +1,12 @@
 import {readFile, existsSync} from 'fs';
+import ErrnoException = NodeJS.ErrnoException;
 
 export interface IReadFileOptions {
     encoding?: string | null;
     flag?: string;
 }
 
-export const ReadFile = (path: string | Buffer | number, options?: IReadFileOptions): Promise<string | Buffer> => {
+export const ReadFile = (path: string, options?: IReadFileOptions): Promise<string> => {
     return new Promise((resolve, reject) => {
         const Options: IReadFileOptions = {};
         if (!options) {
@@ -20,12 +21,13 @@ export const ReadFile = (path: string | Buffer | number, options?: IReadFileOpti
             }
         }
         if (!existsSync(path)) {
-            return reject(new Error(`File Read Error: File ${path} does not exist.`));
+            return reject(new Error(`:::Storage::: ReadFile Error: trying to read a file that does not exist.`));
         }
-        readFile(path, Options, (err: any, data: string | Buffer) => {
+        readFile(path, Options, (err: ErrnoException, data: string | Buffer) => {
             if (err) {
-                return reject(err);
+                return reject(new Error(':::Storage::: ReadFile Error.'));
             } else {
+                data = data as string;
                 resolve(data);
             }
         });

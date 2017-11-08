@@ -26,7 +26,7 @@ export const WriteFile = (file: string | Buffer | number, data: string | Buffer 
         }
         writeFile(file, data, Options, (err) => {
             if (err) {
-                return reject(err);
+                return reject(new Error(':::Storage::: WriteFile Error.'));
             } else {
                 resolve();
             }

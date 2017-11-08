@@ -1,13 +1,12 @@
-import {copyFile} from 'fs';
+import {ReadFile, SafeWrite, parseJSON, stringifyJSON} from './index';
 
-export const CopyFile = (src: string | Buffer, dest: string| Buffer, flags: number = 0): Promise<null> => {
+export const CopyFile = (src: string, dest: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        copyFile(src, dest, flags, (err) => {
-            if (err) {
-                return reject(err);
-            } else {
-                resolve();
-            }
-        });
+        ReadFile(src, {encoding: 'utf8'})
+            .then((data) => parseJSON(data)) // Can it be converted to JSON
+            .then((data) => stringifyJSON(data)) // convert back to string
+            .then((data) => SafeWrite(dest, data)) // write
+            .then(resolve)
+            .catch(reject);
     });
 };

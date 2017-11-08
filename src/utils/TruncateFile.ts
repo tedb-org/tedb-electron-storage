@@ -4,7 +4,7 @@ export const TruncateFile = (fd: number, len: number): Promise<null> => {
     return new Promise((resolve, reject) => {
         ftruncate(fd, len, (err) => {
             if (err) {
-                return reject(err);
+                return reject(new Error(':::Storage::: TruncateFile Error.'));
             } else {
                 resolve();
             }

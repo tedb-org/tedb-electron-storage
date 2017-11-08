@@ -11,10 +11,11 @@ export const FlushStorage = (options: string | IFlushStorageOptions): Promise<nu
         let filename;
         let flags;
         if (Object.prototype.toString.call(options) === '[object String]') {
-            filename = options;
+            filename = options as string | Buffer;
+            flags = 'r+';
         } else {
             options = options as IFlushStorageOptions;
-            filename = options.filename;
+            filename = options.filename as string | Buffer;
             flags = options.isDir ? 'r' : 'r+';
         }
 
@@ -26,9 +27,8 @@ export const FlushStorage = (options: string | IFlushStorageOptions): Promise<nu
             .then(FileSync)
             .then(CloseFile)
             .then(resolve)
-            .catch((err: any) => {
-                err.message = `${err.message} ::STORAGE:: While trying to flush storage.`;
-                reject(err);
+            .catch(() => {
+                reject(new Error(':::Storage::: FlushStorage Error.'));
             });
     });
 };

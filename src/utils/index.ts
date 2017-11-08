@@ -9,4 +9,6 @@ export {FileSync} from './FileSync';
 export {FlushStorage, IFlushStorageOptions} from './FlushStorage';
 export {WriteFile} from './WriteFile';
 export {SafeWrite} from './SafeWrite';
-export {ReadFile} from './ReadFile';
+export {ReadFile, IReadFileOptions} from './ReadFile';
+export {parseJSON} from './parseJSON';
+export {stringifyJSON} from './stringifyJSON';
