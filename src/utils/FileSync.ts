@@ -6,7 +6,7 @@ export const FileSync = (fd: number): Promise<number> => {
             if (err) {
                 return reject(new Error(':::Storage::: FileSync Error.'));
             } else {
-                resolve();
+                resolve(fd);
             }
         });
     });

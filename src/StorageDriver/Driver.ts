@@ -17,8 +17,8 @@ export class ElectronStorage implements TElectronStorage {
     public collectionPath: string;
     public version: string;
 
-    constructor(collection: string) {
-        const ColDir = new AppDirectory(collection);
+    constructor(db: string, collection: string) {
+        const ColDir = new AppDirectory(db);
         if (!existsSync(ColDir.userData())) {
             mkdirSync(ColDir.userData());
         }

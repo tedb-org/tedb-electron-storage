@@ -1123,6 +1123,10 @@ binary-extensions@^1.0.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.10.0.tgz#9aeb9a6c5e88638aad171e167f5900abe24835d0"
 
+binary-type-tree@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/binary-type-tree/-/binary-type-tree-1.2.3.tgz#08660a3d09126e412876ed9b0091cdaca5d2c963"
+
 block-stream@*:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/block-stream/-/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
@@ -4233,6 +4237,12 @@ tar@^2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
+
+tedb@^0.2.16:
+  version "0.2.16"
+  resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.2.16.tgz#aa39554dee1809c7ffe9a2f4e2aad6f0311ef14c"
+  dependencies:
+    binary-type-tree "^1.2.3"
 
 test-exclude@^4.1.1:
   version "4.1.1"

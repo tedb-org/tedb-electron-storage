@@ -27,8 +27,8 @@ export const FlushStorage = (options: string | IFlushStorageOptions): Promise<nu
             .then(FileSync)
             .then(CloseFile)
             .then(resolve)
-            .catch(() => {
-                reject(new Error(':::Storage::: FlushStorage Error.'));
+            .catch((err) => {
+                reject(new Error(':::Storage::: FlushStorage Error. ' + err.message));
             });
     });
 };

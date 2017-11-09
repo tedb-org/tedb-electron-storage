@@ -25,7 +25,7 @@ export const ReadFile = (path: string, options?: IReadFileOptions): Promise<stri
         }
         readFile(path, Options, (err: ErrnoException, data: string | Buffer) => {
             if (err) {
-                return reject(new Error(':::Storage::: ReadFile Error.'));
+                return reject(new Error(':::Storage::: ReadFile Error. ' + err.message));
             } else {
                 data = data as string;
                 resolve(data);
