@@ -1,6 +1,6 @@
 import {TElectronStorage} from './Driver';
 import {existsSync} from 'fs';
-import {SafeWrite, MakeVersionDirPast, stringifyJSON, EnsureDataFile, CopyAndWrite, WriteNewPastandBase} from '../utils';
+import {SafeWrite, MakeVersionDirPast, stringifyJSON, EnsureDataFile, CopyAndWrite, WriteNewPasteandBase} from '../utils';
 const path = require('path');
 
 export const SetItem = (key: string, value: any, Storage: TElectronStorage): Promise<any> => {
@@ -20,13 +20,18 @@ export const SetItem = (key: string, value: any, Storage: TElectronStorage): Pro
                     return CopyAndWrite(fileLocation, path.join(baseLocation, `${key}.db`), data);
                 } else {
                     if (existsSync(fileLocation)) {
-                        return WriteNewPastandBase(fileLocation, baseLocation, data);
+                        return WriteNewPasteandBase(fileLocation, baseLocation, data);
                     } else {
                         return MakeVersionDirPast(fileLocation, returnMany, data);
                     }
                 }
             })
-            .then(() => value)
+            .then(() => {
+                if (Storage.allKeys.indexOf(key) === -1) {
+                    Storage.allKeys.push(key);
+                }
+                return value;
+            })
             .then(resolve)
             .catch(reject);
     });

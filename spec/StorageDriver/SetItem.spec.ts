@@ -13,9 +13,9 @@ afterAll(() => {
     const toDelete = new AppDirectory('tedb-electron-storage-tests');
     ClearDirectory(toDelete.userData())
         .then(() => {
-            console.log('deleted');
+            console.log('deleted setItem-tests');
         })
-        .catch((err) => console.log(err));
+        .catch(console.log);
 });
 
 describe('testing setItem', () => {

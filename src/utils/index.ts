@@ -19,5 +19,6 @@ export {RmDir} from './RmDir';
 export {LStat} from './LStat';
 export {ClearDirectory} from './ClearDirectory';
 export {CopyAndWrite} from './CopyAndWrite';
-export {WriteNewPastandBase} from './WriteNewPastandBase';
+export {WriteNewPasteandBase} from './WriteNewPasteandBase';
 export {MakeVersionDirPast} from './MakeVersionDirPast';
+export {CreateBackupAndUnlink} from './CreateBackupAndUnlink';

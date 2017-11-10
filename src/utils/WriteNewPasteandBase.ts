@@ -1,7 +1,7 @@
 import {EnsureDataFile, SafeWrite, } from './index';
 const path = require('path');
 
-export const WriteNewPastandBase = (fileLocation: string, baseLocation: string, data: any): Promise<any> => {
+export const WriteNewPasteandBase = (fileLocation: string, baseLocation: string, data: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         return EnsureDataFile(baseLocation)
             .then(() => SafeWrite(baseLocation, data))

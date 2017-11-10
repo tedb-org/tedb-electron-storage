@@ -1,6 +1,6 @@
 import {TElectronStorage} from './Driver';
 import {existsSync} from 'fs';
-import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast} from '../utils';
+import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPasteandBase, MakeVersionDirPast} from '../utils';
 const path = require('path');
 
 export const StoreIndex = (key: string, index: string, Storage: TElectronStorage): Promise<any> => {
@@ -40,7 +40,7 @@ export const StoreIndex = (key: string, index: string, Storage: TElectronStorage
                     return CopyAndWrite(fileLocation, path.join(baseLocation, `index_${key}.db`), data);
                 } else {
                     if (existsSync(fileLocation)) {
-                        return WriteNewPastandBase(fileLocation, baseLocation, index);
+                        return WriteNewPasteandBase(fileLocation, baseLocation, index);
                     } else {
                         return MakeVersionDirPast(fileLocation, returnMany, data);
                     }

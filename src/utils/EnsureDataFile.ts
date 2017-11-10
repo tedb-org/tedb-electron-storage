@@ -1,7 +1,6 @@
 import {existsSync} from 'fs';
 import {WriteFile} from './WriteFile';
 import ErrnoException = NodeJS.ErrnoException;
-const path = require('path');
 
 export const EnsureDataFile = (filename: string): Promise<null> => {
     return new Promise((resolve, reject) => {
