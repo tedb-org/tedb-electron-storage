@@ -17,7 +17,7 @@ export const SetItem = (key: string, value: any, Storage: TElectronStorage): Pro
         return stringifyJSON(value)
             .then((data) => {
                 if (existsSync(path.join(baseLocation, `${key}.db`))) {
-                    return CopyAndWrite(fileLocation, path.join(baseLocation, `${key}.db`), data);
+                    return CopyAndWrite(path.join(baseLocation, `${key}.db`), path.join(fileLocation, 'past'), data);
                 } else {
                     if (existsSync(fileLocation)) {
                         return WriteNewPasteandBase(fileLocation, baseLocation, data);

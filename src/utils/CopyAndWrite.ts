@@ -1,11 +1,17 @@
-import {CopyFile, EnsureDataFile, SafeWrite} from './index';
-const path = require('path');
+import {CopyFile, SafeWrite} from './index';
 
-export const CopyAndWrite = (fileLocation: string, baseLocation: string, data: any): Promise<any> => {
+/**
+ * Used to copy a file and then write to the src new data.
+ * @param {string} dest
+ * @param {string} src
+ * @param data
+ * @returns {Promise<any>}
+ * @constructor
+ */
+export const CopyAndWrite = (src: string, dest: string,  data: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        return CopyFile(baseLocation, path.join(fileLocation, 'past'))
-            .then(() => EnsureDataFile(baseLocation))
-            .then(() => SafeWrite(baseLocation, data))
+        return CopyFile(src, dest)
+            .then(() => SafeWrite(src, data))
             .then(resolve)
             .catch(reject);
     });

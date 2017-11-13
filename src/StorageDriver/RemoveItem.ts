@@ -1,21 +1,15 @@
 import {TElectronStorage} from './Driver';
 import {existsSync} from 'fs';
-import {CreateBackupAndUnlink, UnlinkFile, RmDir} from '../utils';
+import {UnlinkFile, removeBackup} from '../utils';
 const path = require('path');
 
-const removeBackup = (fileLocation: string): Promise<null> => {
-    return new Promise((resolve, reject) => {
-        if (!existsSync(path.join(fileLocation, 'past'))) {
-            return resolve();
-        } else {
-            return UnlinkFile(fileLocation)
-                .then(() => RmDir(fileLocation))
-                .then(resolve)
-                .catch(reject);
-        }
-    });
-};
-
+/**
+ * Removing items will also remove the backup directory for the item as well
+ * @param {string} key
+ * @param {TElectronStorage} Storage
+ * @returns {Promise<any>}
+ * @constructor
+ */
 export const RemoveItem = (key: string, Storage: TElectronStorage): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
@@ -31,16 +25,16 @@ export const RemoveItem = (key: string, Storage: TElectronStorage): Promise<any>
                 return reject(e);
             }
         } else {
-            return CreateBackupAndUnlink(fileLocation, path.join(baseLocation, `${key}.db`))
+            return removeBackup(fileLocation)
+                .then(() => UnlinkFile(path.join(baseLocation, `${key}.db`)))
                 .then(() => {
                     try {
                         Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
                     } catch (e) {
                         throw e;
                     }
-                    return null;
+                    resolve();
                 })
-                .then(resolve)
                 .catch(reject);
         }
     });

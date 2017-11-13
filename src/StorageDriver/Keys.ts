@@ -1,38 +1,27 @@
 import {TElectronStorage} from './Driver';
-import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite} from '../utils';
+import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flatten} from '../utils';
 const path = require('path');
 
-const safeParse = (data: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const json = JSON.parse(data);
-            resolve(json);
-        } catch (e) {
-            resolve(false);
-        }
-    });
-};
-
-const RemoveDirectoryAndFile = (dirLocation: string): Promise<string> => {
+const RemoveDirectoryAndFile = (dirLocation: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return EnsureDataFile(dirLocation)
             .then(() => UnlinkFile(path.join(dirLocation, 'past')))
             .then(() => RmDir(dirLocation))
-            .then(() => resolve('' as string))
+            .then(() => resolve([]))
             .catch(reject);
     });
 };
 
-const WriteBackupToBaseReturn = (fileData: any, baseLocation: string): Promise<string> => {
+const WriteBackupToBaseReturn = (fileData: any, baseLocation: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return EnsureDataFile(path.join(baseLocation, `${fileData._id}.db`))
             .then(() => SafeWrite(path.join(baseLocation, `${fileData._id}.db`), fileData))
-            .then(() => resolve(fileData._id as string))
+            .then(() => resolve([fileData._id as string]))
             .catch(reject);
     });
 };
 
-const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<string[]> => {
+const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<string[][]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(dirLocation)
             .then((directories) => {
@@ -45,7 +34,7 @@ const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<
             .then((filesData: string[]) => {
                 return Promise.all(filesData.map((fd) => safeParse(fd)));
             })
-            .then((filesData: any[]): Promise<string[]> => {
+            .then((filesData: any[]): Promise<string[][]> => {
                 return Promise.all(filesData.map((fd) => {
                     if (fd === false) {
                         return RemoveDirectoryAndFile(dirLocation);
@@ -76,20 +65,20 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: TEle
             .then((filesData: string[]) => {
                 return Promise.all(filesData.map((fd) => safeParse(fd)));
             })
-            .then((filesData: any[]): Promise<string[][]> => {
+            .then((filesData: any[]): Promise<string[][][]> => {
                 return Promise.all(filesData.map((fd) => {
                     if (fd === false) {
                         return readBackupLocation(dirLocation, baseLocation);
                     } else {
-                        const a: string = '';
-                        return (new Promise<string[]>((res) => res([a])));
+                        return (new Promise<string[][]>((res) => res([[]])));
                     }
                 }));
             })
-            .then((keys: string[][]) => {
+            .then((keys: string[][][]) => {
+                const incomingKeys = flatten(keys);
                 let KEYS: string[] = [];
-                keys.forEach((key) => {
-                    KEYS = [...KEYS, ...key];
+                incomingKeys.forEach((key) => {
+                    KEYS = [...key];
                 });
                 resolve([...Storage.allKeys, ...KEYS]);
             })

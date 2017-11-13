@@ -1,7 +1,16 @@
 import {TElectronStorage} from './Driver';
 import {existsSync} from 'fs';
-import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPasteandBase, MakeVersionDirPast} from '../utils';
+import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPasteandBase, MakeVersionDirPast, UnlinkFile} from '../utils';
 const path = require('path');
+
+const removeBaseWriteBackup = (base: string, backupDir: string, data: string): Promise<null> => {
+    return new Promise((resolve, reject) => {
+        return UnlinkFile(base)
+            .then(() => SafeWrite(path.join(backupDir, 'past'), data))
+            .then(resolve)
+            .catch(reject);
+    });
+};
 
 export const StoreIndex = (key: string, index: string, Storage: TElectronStorage): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -14,35 +23,33 @@ export const StoreIndex = (key: string, index: string, Storage: TElectronStorage
                     .then(() => SafeWrite(writePath, StringifiedJSON));
             }));
         };
-        // index is empty
-        /*if (index === '[{"key":null,"value":[null]}]' || index === '[{"key":null, "value":[]}]') {
-            // Read into tedb & ClientElectron to see why this is.
-            // Why do I need to delete the file if the incoming index is empty?
-        } else {
-            return stringifyJSON(index)
-                .then((data) => {
-                    if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
-                        return CopyAndWrite(fileLocation, path.join(baseLocation, `index_${key}.db`), data);
-                    } else {
-                        if (existsSync(fileLocation)) {
-                            return WriteNewPastandBase(fileLocation, baseLocation, index);
-                        } else {
-                            return MakeVersionDirPast(fileLocation, returnMany, data);
-                        }
-                    }
-                })
-                .then(resolve)
-                .catch(reject);
-        }*/
+        // Always store
         return stringifyJSON(index)
             .then((data) => {
                 if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
-                    return CopyAndWrite(fileLocation, path.join(baseLocation, `index_${key}.db`), data);
+                    if (data === '[{"key":null,"value":[]}]') {
+                        // the index is null - remove base file and write this to backup
+                        return removeBaseWriteBackup(path.join(baseLocation, `index_${key}.db`), fileLocation, data);
+                    } else {
+                        // store the index
+                        return CopyAndWrite(path.join(baseLocation, `index_${key}.db`), path.join(fileLocation, 'past'), data);
+                    }
                 } else {
                     if (existsSync(fileLocation)) {
-                        return WriteNewPasteandBase(fileLocation, baseLocation, index);
+                        if (index === '[{"key":null,"value":[]}]') {
+                            // the base file does not exist - but the backup does
+                            // do not write to base file but write this to backup
+                            return SafeWrite(path.join(fileLocation, 'past'), data);
+                        } else {
+                            return WriteNewPasteandBase(fileLocation, baseLocation, index);
+                        }
                     } else {
-                        return MakeVersionDirPast(fileLocation, returnMany, data);
+                        if (index === '[{"key":null,"value":[]}]') {
+                            // neither backup or base file exists. - resolve
+                            return new Promise((res) => res());
+                        } else {
+                            return MakeVersionDirPast(fileLocation, returnMany, data);
+                        }
                     }
                 }
             })
