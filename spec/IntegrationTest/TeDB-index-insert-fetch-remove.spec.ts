@@ -3,7 +3,7 @@ import {ElectronStorage} from '../../src/StorageDriver';
 import {AppDirectory} from '../../src/AppDirectory';
 import {IStorageDriverExtended} from '../../src/types';
 import {existsSync} from 'fs';
-import {ClearDirectory, ReadFile, parseJSON, UnlinkFile, RmDir} from '../../src/utils';
+import {ClearDirectory, ReadFile, parseJSON, UnlinkFile, RmDir, AppendFile, SafeWrite} from '../../src/utils';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -29,12 +29,14 @@ describe('tedb integration tests', () => {
         {isSynced: false, num: -1, time: new Date(), odd: ''},
         {isSynced: true, num: 1, time: null, odd: 'string'},
     ];
+    let BDir;
     let indexReset;
 
     test('ensure index + insert', () => {
         expect.assertions(1);
         return TestDB.ensureIndex({fieldName: 'isSynced', unique: false})
             .then(() => {
+                BDir = path.join(Storage.collectionPath, Storage.version, 'states', 'index_isSynced');
                 return Promise.all(docs.map((doc) => {
                     return TestDB.insert(doc);
                 }));
@@ -110,24 +112,110 @@ describe('tedb integration tests', () => {
     });
 
     test('removing base and past file', () => {
-        expect.assertions(1);
+        expect.assertions(4);
         return UnlinkFile(path.join(Storage.collectionPath, 'index_isSynced.db'))
-            .then(() => UnlinkFile(path.join(Storage.collectionPath, Storage.version, 'states', 'index_isSynced', 'past')))
+            .then(() => UnlinkFile(path.join(BDir, 'past')))
             .then(() => Storage.fetchIndex('isSynced'))
             .then((item) => {
                 expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
                 return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
             });
     });
 
     test('removing all', () => {
-        expect.assertions(1);
+        expect.assertions(4);
         return UnlinkFile(path.join(Storage.collectionPath, 'index_isSynced.db'))
-            .then(() => UnlinkFile(path.join(Storage.collectionPath, Storage.version, 'states', 'index_isSynced', 'past')))
-            .then(() => RmDir(path.join(Storage.collectionPath, Storage.version, 'states', 'index_isSynced')))
+            .then(() => UnlinkFile(path.join(BDir, 'past')))
+            .then(() => RmDir(BDir))
             .then(() => Storage.fetchIndex('isSynced'))
             .then((item) => {
                 expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
+                return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
+            });
+    });
+
+    test('making base file not json', () => {
+        expect.assertions(1);
+        return AppendFile(path.join(Storage.collectionPath, 'index_isSynced.db'),  '^')
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item.length).toEqual(2);
+            });
+    });
+
+    test('making both files not json', () => {
+        expect.assertions(4)
+        return AppendFile(path.join(Storage.collectionPath, 'index_isSynced.db'), '^')
+            .then(() => AppendFile(path.join(BDir, 'past'), '^'))
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
+                return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
+            });
+    });
+
+    test('making base not json and removing past file', () => {
+        expect.assertions(4);
+        return AppendFile(path.join(Storage.collectionPath, 'index_isSynced.db'), '^')
+            .then(() => UnlinkFile(path.join(BDir, 'past')))
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
+                return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
+            });
+    });
+
+    test('making base not json and removing backup directory', () => {
+        expect.assertions(4);
+        return AppendFile(path.join(Storage.collectionPath, 'index_isSynced.db'), '^')
+            .then(() => UnlinkFile(path.join(BDir, 'past')))
+            .then(() => RmDir(BDir))
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
+                return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
+            });
+    });
+
+    test('no base, backup dir exists, but backup file is not json', () => {
+        expect.assertions(4);
+        return UnlinkFile(path.join(Storage.collectionPath, 'index_isSynced.db'))
+            .then(() => AppendFile(path.join(BDir, 'past'), '^'))
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
+                return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
+            });
+    });
+
+    test('no base, backup dir exists, but backup is nulled', () => {
+        expect.assertions(4);
+        return UnlinkFile(path.join(Storage.collectionPath, 'index_isSynced.db'))
+            .then(() => SafeWrite(path.join(BDir, 'past'), '[{"key":null,"value":[]}]'))
+            .then(() => Storage.fetchIndex('isSynced'))
+            .then((item) => {
+                expect(item).toEqual(undefined);
+                expect(existsSync(BDir)).toEqual(false);
+                expect(existsSync(path.join(BDir, 'past'))).toEqual(false);
+                expect(existsSync(path.join(Storage.collectionPath, 'index_isSynced.db'))).toEqual(false);
                 return Storage.storeIndex('isSynced', JSON.stringify(indexReset));
             });
     });
