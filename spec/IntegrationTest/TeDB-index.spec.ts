@@ -8,13 +8,17 @@ const path = require('path');
 
 let Storage: IStorageDriverExtended;
 let TestDB: IDatastore;
+let dbAppname: string;
+let dbName: string;
 beforeAll(() => {
-    Storage = new ElectronStorage('tedb-integration-storage-tests', 'tedb');
+    dbAppname = 'tedb-integration-storage-tests';
+    dbName = 'tedb';
+    Storage = new ElectronStorage(dbAppname, dbName);
     TestDB = new Datastore({storage: Storage});
 });
 
 afterAll(() => {
-    const toDelete = new AppDirectory('tedb-integration-storage-tests');
+    const toDelete = new AppDirectory(dbAppname);
     ClearDirectory(toDelete.userData())
         .then(() => {
             console.log('deleted tedb');
@@ -23,7 +27,8 @@ afterAll(() => {
 });
 
 describe('tedb integration tests', () => {
-    const toFind = new AppDirectory('tedb-integration-storage-tests');
+    const Eversion = Storage.version;
+    const toFind = new AppDirectory(dbAppname);
     const docs: any = [
         {isSynced: false, num: 0, time: null, odd: ''},
         {isSynced: false, num: -1, time: new Date(), odd: ''},
@@ -70,8 +75,8 @@ describe('tedb integration tests', () => {
                 }
             })
             .then(() => {
-                file1 = path.join(toFind.userData(), 'db', 'tedb', 'index_isSynced.db');
-                file2 = path.join(toFind.userData(), 'db', 'tedb', 'v1', 'states', 'index_isSynced', 'past');
+                file1 = path.join(toFind.userData(), 'db', dbName, 'index_isSynced.db');
+                file2 = path.join(toFind.userData(), 'db', dbName, Eversion, 'states', 'index_isSynced', 'past');
                 return ReadFile(file1);
             })
             .then((data) => {
@@ -150,7 +155,7 @@ describe('tedb integration tests', () => {
     });
 
     test('making both files not json', () => {
-        expect.assertions(4)
+        expect.assertions(4);
         return AppendFile(path.join(Storage.collectionPath, 'index_isSynced.db'), '^')
             .then(() => AppendFile(path.join(BDir, 'past'), '^'))
             .then(() => Storage.fetchIndex('isSynced'))
@@ -245,8 +250,8 @@ describe('tedb integration tests', () => {
                 }
             })
             .then(() => {
-                file1 = path.join(toFind.userData(), 'db', 'tedb', 'index_isSynced.db');
-                file2 = path.join(toFind.userData(), 'db', 'tedb', 'v1', 'states', 'index_isSynced', 'past');
+                file1 = path.join(toFind.userData(), 'db', dbName, 'index_isSynced.db');
+                file2 = path.join(toFind.userData(), 'db', dbName, Eversion, 'states', 'index_isSynced', 'past');
                 return ReadFile(file2);
             })
             .then((data) => {

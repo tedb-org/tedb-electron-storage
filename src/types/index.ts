@@ -1,5 +1,7 @@
 import {IStorageDriver} from './StorageDriver_BaseInterface';
 
+export type TiteratorCB = (key: string, value: any, iteratorNumber?: number) => any;
+
 export interface IStorageDriverExtended extends IStorageDriver {
     collectionPath: string;
     allKeys: string[];

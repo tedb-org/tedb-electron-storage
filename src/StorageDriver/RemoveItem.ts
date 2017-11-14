@@ -1,4 +1,4 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {existsSync} from 'fs';
 import {UnlinkFile, removeBackup} from '../utils';
 const path = require('path');
@@ -10,7 +10,7 @@ const path = require('path');
  * @returns {Promise<any>}
  * @constructor
  */
-export const RemoveItem = (key: string, Storage: TElectronStorage): Promise<any> => {
+export const RemoveItem = (key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
         const fileLocation = path.join(baseLocation, Storage.version, 'states', key);

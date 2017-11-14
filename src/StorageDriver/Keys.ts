@@ -1,4 +1,4 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flatten} from '../utils';
 const path = require('path');
 
@@ -52,7 +52,7 @@ const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<
 // Search for keys. If a key is found test to see if it is parsable. If not search
 // backup location and test if that file is parsable. If not then return null.
 // If so then copy backup to baseLocation then return the backup.
-const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: TElectronStorage): Promise<string[]> => {
+const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: IStorageDriverExtended): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(baseLocation)
             .then((files) => {
@@ -86,7 +86,7 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: TEle
     });
 };
 
-export const Keys = (Storage: TElectronStorage): Promise<any> => {
+export const Keys = (Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (Storage.allKeys.length === 0) {
             const baseLocation = Storage.collectionPath;

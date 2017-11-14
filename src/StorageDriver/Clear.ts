@@ -1,6 +1,6 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 
-export const Clear = (Storage: TElectronStorage): Promise<any> => {
+export const Clear = (Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
 
     });

@@ -7,4 +7,4 @@ export {Keys} from './Keys';
 export {RemoveItem} from './RemoveItem';
 export {StoreIndex} from './StoreIndex';
 export {RemoveIndex} from './RemoveIndex';
-export {TElectronStorage, IElectronStorage, ElectronStorage} from './Driver';
+export {ElectronStorage} from './Driver';

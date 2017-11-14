@@ -1,4 +1,4 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {existsSync} from 'fs';
 import {RmDir, UnlinkFile, safeParse, ReadFile, CopyFile, stringifyJSON} from '../utils';
 const path = require('path');
@@ -193,7 +193,7 @@ const testLocationAndReturn = (base: string, dir: string, key: string): Promise<
  * @returns {Promise<any>}
  * @constructor
  */
-export const FetchIndex = (key: string, Storage: TElectronStorage): Promise<any> => {
+export const FetchIndex = (key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
         const dirLocation = path.join(baseLocation, Storage.version, 'states', `index_${key}`);

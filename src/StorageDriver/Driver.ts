@@ -1,18 +1,10 @@
-import {IStorageDriver} from '../types';
+import {IStorageDriverExtended} from '../types';
 import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex} from './index';
 import {existsSync, mkdirSync} from 'fs';
 import {AppDirectory} from '../AppDirectory';
 const path = require('path');
 
-export interface IElectronStorage {
-    allKeys: string[];
-    collectionPath: string;
-    version: string;
-}
-
-export type TElectronStorage = IElectronStorage & IStorageDriver;
-
-export class ElectronStorage implements TElectronStorage {
+export class ElectronStorage implements IStorageDriverExtended {
     public allKeys: string[];
     public collectionPath: string;
     public version: string;
@@ -35,7 +27,7 @@ export class ElectronStorage implements TElectronStorage {
         // without affecting the operation of the db and the current file
         // current location of the readable items.
         // -------------------------------------------------------------------
-        this.version = 'v1';
+        this.version = '$v0.0.1';
         // make sure that this version directory exists
         if (!existsSync(path.join(this.collectionPath, this.version))) {
             mkdirSync(path.join(this.collectionPath, this.version));

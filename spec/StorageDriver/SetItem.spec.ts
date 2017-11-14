@@ -1,16 +1,21 @@
 import {ElectronStorage} from '../../src/StorageDriver';
+import {IStorageDriverExtended} from '../../src/types';
 import {AppDirectory} from '../../src/AppDirectory';
 import {ClearDirectory} from '../../src/utils';
 import {existsSync, readFileSync} from 'fs';
 const path = require('path');
 
-let Storage;
+let Storage: IStorageDriverExtended;
+let dbAppname: string;
+let dbName: string;
 beforeAll(() => {
-    Storage = new ElectronStorage('tedb-electron-storage-tests', 'setItem-tests');
+    dbAppname = 'tedb-electron-storage-tests';
+    dbName = 'setItem-tests';
+    Storage = new ElectronStorage(dbAppname, dbName);
 });
 
 afterAll(() => {
-    const toDelete = new AppDirectory('tedb-electron-storage-tests');
+    const toDelete = new AppDirectory(dbAppname);
     ClearDirectory(toDelete.userData())
         .then(() => {
             console.log('deleted setItem-tests');
@@ -19,6 +24,7 @@ afterAll(() => {
 });
 
 describe('testing setItem', () => {
+    const Eversion = Storage.version;
     const firstItem: any = {
         object: {
             item: 1, item2: 'string', item3: null, item4: false,
@@ -55,8 +61,8 @@ describe('testing setItem', () => {
 
     test('that past item is the firstItem not the secondItem', () => {
         expect.assertions(4);
-        if (existsSync(path.join(Storage.collectionPath, 'v1', 'states', '1234', 'past'))) {
-            const file = readFileSync(path.join(Storage.collectionPath, 'v1', 'states', '1234', 'past'), {encoding: 'utf8'});
+        if (existsSync(path.join(Storage.collectionPath, Eversion, 'states', '1234', 'past'))) {
+            const file = readFileSync(path.join(Storage.collectionPath, Eversion, 'states', '1234', 'past'), {encoding: 'utf8'});
             const obj = JSON.parse(file);
             expect(obj.object.item).toEqual(1);
             expect(obj.object.item2).toEqual('string');

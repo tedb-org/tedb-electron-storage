@@ -1,9 +1,9 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {existsSync} from 'fs';
 import {SafeWrite, MakeVersionDirPast, stringifyJSON, EnsureDataFile, CopyAndWrite, WriteNewPasteandBase} from '../utils';
 const path = require('path');
 
-export const SetItem = (key: string, value: any, Storage: TElectronStorage): Promise<any> => {
+export const SetItem = (key: string, value: any, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
         const fileLocation = path.join(Storage.collectionPath, Storage.version, 'states', key);

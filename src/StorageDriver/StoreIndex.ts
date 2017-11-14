@@ -1,4 +1,4 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {existsSync} from 'fs';
 import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPasteandBase, MakeVersionDirPast, UnlinkFile} from '../utils';
 const path = require('path');
@@ -12,7 +12,7 @@ const removeBaseWriteBackup = (base: string, backupDir: string, data: string): P
     });
 };
 
-export const StoreIndex = (key: string, index: string, Storage: TElectronStorage): Promise<any> => {
+export const StoreIndex = (key: string, index: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
         const fileLocation = path.join(Storage.collectionPath, Storage.version, 'states', `index_${key}`);

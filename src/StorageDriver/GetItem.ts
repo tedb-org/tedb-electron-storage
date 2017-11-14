@@ -1,4 +1,4 @@
-import {TElectronStorage} from './Driver';
+import {IStorageDriverExtended} from '../types';
 import {existsSync} from 'fs';
 import {safeParse, UnlinkFile, ReadFile, RmDir, CopyFile} from '../utils';
 const path = require('path');
@@ -16,7 +16,7 @@ const path = require('path');
  * @param {TElectronStorage} Storage
  * @returns {Promise<any>}
  */
-const deleteBackupFileAndDir = (fileLocation: string, key: string, Storage: TElectronStorage): Promise<null> => {
+const deleteBackupFileAndDir = (fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<null> => {
     return new Promise((resolve, reject) => {
         return UnlinkFile(path.join(fileLocation, 'past'))
             .then(() => RmDir(fileLocation))
@@ -55,7 +55,7 @@ const copyAndReturn = (key: string, base: string, backup: string, data: any): Pr
  * @param {TElectronStorage} Storage
  * @returns {Promise<any>}
  */
-const testBackup = (baseLocation: string, fileLocation: string, key: string, Storage: TElectronStorage): Promise<any> => {
+const testBackup = (baseLocation: string, fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (existsSync(path.join(fileLocation, 'past'))) {
             // read file to see if it is parsable, if not delete, if so
@@ -101,7 +101,7 @@ const testBackup = (baseLocation: string, fileLocation: string, key: string, Sto
  * @param {TElectronStorage} Storage
  * @returns {Promise<any>}
  */
-const checkBackupAndReplace = (base: string, backup: string, key: string, Storage: TElectronStorage): Promise<any> => {
+const checkBackupAndReplace = (base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (existsSync(backup)) {
             // dir exists
@@ -160,7 +160,7 @@ const checkBackupAndReplace = (base: string, backup: string, key: string, Storag
  * @param {TElectronStorage} Storage
  * @returns {Promise<any>}
  */
-const testLocationAndReturn = (base: string, backup: string, key: string, Storage: TElectronStorage): Promise<any> => {
+const testLocationAndReturn = (base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         return ReadFile(path.join(base, `${key}.db`))
             .then((rawData) => safeParse(rawData))
@@ -191,7 +191,7 @@ const testLocationAndReturn = (base: string, backup: string, key: string, Storag
  * @returns {Promise<any>}
  * @constructor
  */
-export const GetItem = (key: string, Storage: TElectronStorage): Promise<any> => {
+export const GetItem = (key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
         const fileLocation = path.join(baseLocation, Storage.version, 'states', key);
