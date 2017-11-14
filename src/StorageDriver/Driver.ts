@@ -27,7 +27,7 @@ export class ElectronStorage implements IStorageDriverExtended {
         // without affecting the operation of the db and the current file
         // current location of the readable items.
         // -------------------------------------------------------------------
-        this.version = '$v0.0.1';
+        this.version = '`v0.0.1';
         // make sure that this version directory exists
         if (!existsSync(path.join(this.collectionPath, this.version))) {
             mkdirSync(path.join(this.collectionPath, this.version));

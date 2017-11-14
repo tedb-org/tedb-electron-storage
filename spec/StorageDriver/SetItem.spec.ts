@@ -24,7 +24,7 @@ afterAll(() => {
 });
 
 describe('testing setItem', () => {
-    const Eversion = Storage.version;
+    let Eversion;
     const firstItem: any = {
         object: {
             item: 1, item2: 'string', item3: null, item4: false,
@@ -39,6 +39,7 @@ describe('testing setItem', () => {
     };
     test('setting a new object', () => {
         expect.assertions(4);
+        Eversion = Storage.version;
         return Storage.setItem('1234', firstItem)
             .then((obj) => {
                 expect(obj.object.item).toEqual(1);

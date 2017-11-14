@@ -11,7 +11,7 @@ let TestDB: IDatastore;
 let dbAppname: string;
 let dbName: string;
 beforeAll(() => {
-    dbAppname = 'tedb-integration-storage-tests';
+    dbAppname = 'tedb-integration-storage-non-unique-index-tests';
     dbName = 'tedb';
     Storage = new ElectronStorage(dbAppname, dbName);
     TestDB = new Datastore({storage: Storage});
@@ -26,7 +26,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
-describe('tedb integration tests', () => {
+describe('tedb integration tests non-unique index', () => {
     const Eversion = Storage.version;
     const toFind = new AppDirectory(dbAppname);
     const docs: any = [

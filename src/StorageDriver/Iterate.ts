@@ -16,13 +16,13 @@ const removeAll = (current: string, backup: string): Promise<null> => {
 const iterateAndReplace = (current: string, backup: string, iterator: TiteratorCB, data: any): Promise<null> => {
     return new Promise((resolve, reject) => {
         return CopyFile(path.join(backup, 'past'), current)
-            .then(() => {
+            .then((): Promise<null> => {
                 if (data.hasOwnProperty('_id')) {
-                    resolve(iterator(data, data._id));
-                } else {
-                    resolve();
+                    iterator(data, data._id);
                 }
+                return new Promise((res) => res());
             })
+            .then(resolve)
             .catch(reject);
     });
 };
@@ -52,7 +52,9 @@ const checkBackup = (currentFile: string, key: string, Storage: IStorageDriverEx
             // backup directory exists
             if (existsSync(path.join(backup, 'past'))) {
                 // backup file exists
-                return readAndReplace(currentFile, backup, iterator);
+                return readAndReplace(currentFile, backup, iterator)
+                    .then(resolve)
+                    .catch(reject);
             } else {
                 // backup file does not exist. Remove dir and current file
                 return RmDir(backup)
@@ -100,7 +102,7 @@ export const Iterate = (iteratorCallback: TiteratorCB, Storage: IStorageDriverEx
             return ReadDir(baseLocation)
                 .then((files) => {
                     const indexFile = new RegExp('index_');
-                    const version = new RegExp('$v');
+                    const version = new RegExp('`v');
                     const filteredFiles = files.filter((file) => {
                         const thisFile = file.toString();
                         if (!indexFile.test(thisFile) && !version.test(thisFile)) {
@@ -109,7 +111,13 @@ export const Iterate = (iteratorCallback: TiteratorCB, Storage: IStorageDriverEx
                     });
                     return Promise.all(filteredFiles.map((file) => {
                         const filename = path.join(baseLocation, file);
-                        const key = file.toString().substr(0, file.toString().indexOf('.'));
+                        let key;
+                        if (typeof file === 'string') {
+                            key = file.substr(0, file.indexOf('.'));
+                        } else {
+                            key = file.toString().substr(0, file.toString().indexOf('.'));
+                        }
+
                         return readParseIterate(filename, iteratorCallback, key, Storage);
                     }));
                 })
