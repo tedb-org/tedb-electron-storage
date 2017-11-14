@@ -1,3 +1,30 @@
-export {IStorageDriver} from './types';
-export {GetItem, SetItem, Clear, FetchIndex, Iterate, Keys, RemoveItem, StoreIndex, RemoveIndex,
-TElectronStorage, IElectronStorage, ElectronStorage} from './StorageDriver';
+export {IStorageDriverExtended, TiteratorCB} from './types';
+export {GetItem, SetItem, Clear, FetchIndex, Iterate, Keys, RemoveItem, StoreIndex, RemoveIndex, ElectronStorage} from './StorageDriver';
+export {
+    TruncateFile,
+    OpenFile,
+    MakeDir,
+    CopyFile,
+    AppendFile,
+    CloseFile,
+    FileStat,
+    FileSync,
+    FlushStorage, IFlushStorageOptions,
+    WriteFile,
+    SafeWrite,
+    ReadFile, IReadFileOptions,
+    parseJSON,
+    stringifyJSON,
+    EnsureDataFile,
+    UnlinkFile,
+    ReadDir,
+    RmDir,
+    LStat,
+    ClearDirectory,
+    CopyAndWrite,
+    WriteNewPasteandBase,
+    MakeVersionDirPast,
+    flattenStorageDriver,
+    safeParse,
+    removeBackup,
+} from './utils';

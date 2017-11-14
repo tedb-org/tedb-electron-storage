@@ -21,13 +21,13 @@ afterAll(() => {
     const toDelete = new AppDirectory(dbAppname);
     ClearDirectory(toDelete.userData())
         .then(() => {
-            console.log('deleted tedb');
+            console.log('deleted non-unique tedb indices');
         })
         .catch(console.log);
 });
 
 describe('tedb integration tests non-unique index', () => {
-    const Eversion = Storage.version;
+    let Eversion;
     const toFind = new AppDirectory(dbAppname);
     const docs: any = [
         {isSynced: false, num: 0, time: null, odd: ''},
@@ -38,6 +38,7 @@ describe('tedb integration tests non-unique index', () => {
     let indexReset;
 
     test('ensure index + insert', () => {
+        Eversion = Storage.version;
         expect.assertions(1);
         return TestDB.ensureIndex({fieldName: 'isSynced', unique: false})
             .then(() => {

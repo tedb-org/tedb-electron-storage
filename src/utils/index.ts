@@ -21,6 +21,6 @@ export {ClearDirectory} from './ClearDirectory';
 export {CopyAndWrite} from './CopyAndWrite';
 export {WriteNewPasteandBase} from './WriteNewPasteandBase';
 export {MakeVersionDirPast} from './MakeVersionDirPast';
-export {flatten} from './flatten';
+export {flattenStorageDriver} from './flattenStroageDriver';
 export {safeParse} from './safeParse';
 export {removeBackup} from './removeBackup';

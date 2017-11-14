@@ -12,7 +12,7 @@
  * @param {any[]} arr
  * @returns {any[]}
  */
-export const flatten = (arr: any[]): any[] => {
+export const flattenStorageDriver = (arr: any[]): any[] => {
     const flat = [].concat(...arr);
-    return flat.some(Array.isArray) ? flatten(flat) : flat;
+    return flat.some(Array.isArray) ? flattenStorageDriver(flat) : flat;
 };

@@ -1,7 +1,6 @@
 import {IStorageDriverExtended} from '../types';
+import {ClearDirectory} from '../utils';
 
 export const Clear = (Storage: IStorageDriverExtended): Promise<any> => {
-    return new Promise((resolve, reject) => {
-
-    });
+    return ClearDirectory(Storage.collectionPath);
 };

@@ -1,5 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flatten} from '../utils';
+import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver} from '../utils';
 const path = require('path');
 
 const RemoveDirectoryAndFile = (dirLocation: string): Promise<string[]> => {
@@ -75,7 +75,7 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: ISto
                 }));
             })
             .then((keys: string[][][]) => {
-                const incomingKeys = flatten(keys);
+                const incomingKeys = flattenStorageDriver(keys);
                 let KEYS: string[] = [];
                 incomingKeys.forEach((key) => {
                     KEYS = [...key];
