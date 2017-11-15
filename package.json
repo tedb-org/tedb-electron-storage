@@ -8,7 +8,7 @@
         "build": "webpack"
     },
     "repository": "https://github.com/tedb-org/tedb-electron-storage.git",
-    "author": "marcusjwhelan <marcus.j.whelan@gmail.com>",
+    "author": "marcusjwhelan",
     "license": "MIT",
     "keywords": [
         "typescript",
