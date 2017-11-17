@@ -106,7 +106,7 @@ describe('testing keys', () => {
             .then(() => TestDB.find({}).exec())
             .then((objs) => {
                 objs = objs as any[];
-                expect(objs.length).toEqual(3); // one will be undefined;
+                expect(objs.length).toEqual(2);
                 expect(existsSync(file1)).toBeTruthy();
                 expect(existsSync(file2)).toBeFalsy();
                 return TestDB.insert(obj2);

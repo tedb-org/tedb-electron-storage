@@ -1,8 +1,8 @@
 import {IStorageDriverExtended} from '../types';
-import {ReadDir, ReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver} from '../utils';
+import {ReadDir, safeReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver, safeDirExists} from '../utils';
 const path = require('path');
 
-const RemoveDirectoryAndFile = (base: string, dirLocation: string, key: string): Promise<string[]> => {
+const removeAll = (dirLocation: string, base: string, key: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return EnsureDataFile(path.join(dirLocation, key))
             .then(() => EnsureDataFile(path.join(base, `${key}.db`)))
@@ -12,6 +12,31 @@ const RemoveDirectoryAndFile = (base: string, dirLocation: string, key: string):
             .then(() => UnlinkFile(path.join(base, `${key}.db`)))
             .then(() => resolve([]))
             .catch(reject);
+    });
+};
+
+const removeJustbase = (base: string, key: string): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+        return EnsureDataFile(path.join(base, `${key}.db`))
+            .then(() => UnlinkFile(path.join(base, `${key}.db`)))
+            .then(() => resolve([]))
+            .catch(reject);
+    });
+};
+
+const RemoveDirectoryAndFile = (base: string, dirLocation: string, key: string): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(path.join(dirLocation, key))
+            .then((bool): Promise<string[]> => {
+                if (bool === false) {
+                    return removeAll(dirLocation, base, key);
+                } else {
+                    return removeJustbase(base, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+
     });
 };
 
@@ -40,8 +65,14 @@ interface IcomboRead {
 }
 const comboFileReadMethod = (dirLocation: string, dir: string | Buffer, key: string | Buffer): Promise<IcomboRead> => {
     return new Promise((resolve, reject) => {
-        return ReadFile(path.join(dirLocation, dir, 'past'))
-            .then((rawData) => resolve({key: key.toString(), rawData: rawData.toString()}))
+        return safeReadFile(path.join(dirLocation, dir, 'past'))
+            .then((rawData) => {
+                if (rawData === false) {
+                    resolve({key: String(key), rawData: ''});
+                } else {
+                    resolve({key: String(key), rawData: String(rawData)});
+                }
+            })
             .catch(reject);
     });
 };
@@ -58,15 +89,7 @@ const comboFileParseMethod = (obj: IcomboRead): Promise<IcomboParse> => {
     });
 };
 
-/**
- * Read the backup file to see if it is parsable
- * if So -> return the key and write data to current location
- * if Not -> delete backup. Can not delete current without reference
- * @param {string} dirLocation
- * @param {string} baseLocation
- * @returns {Promise<string[][]>}
- */
-const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<string[][]> => {
+const readBackupDir = (dirLocation: string, baseLocation: string): Promise<string[][]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(dirLocation)
             .then((directories) => {
@@ -99,10 +122,30 @@ const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<
     });
 };
 
-// Search for keys. If a key is found test to see if it is parsable. If not search
-// backup location and test if that file is parsable. If not then return null.
-// If so then copy backup to baseLocation then return the backup.
-const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: IStorageDriverExtended): Promise<string[]> => {
+/**
+ * Read the backup file to see if it is parsable
+ * if So -> return the key and write data to current location
+ * if Not -> delete backup. Can not delete current without reference
+ * @param {string} dirLocation
+ * @param {string} baseLocation
+ * @returns {Promise<string[][]>}
+ */
+const readBackupLocation = (dirLocation: string, baseLocation: string): Promise<string[][]> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(dirLocation)
+            .then((bool): Promise<string[][]> => {
+                if (bool === false) {
+                    return new Promise((res) => res([[]]));
+                } else {
+                    return readBackupDir(dirLocation, baseLocation);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorageDriverExtended): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(baseLocation)
             .then((files) => {
@@ -110,18 +153,24 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: ISto
                 const vers = new RegExp('`v');
                 // don't try and read index files or the version directory
                 const noIndexFiles = files.filter((file) => {
-                    const thisFile = file.toString();
+                    const thisFile = String(file);
                     if (!reg.test(thisFile) && !vers.test(thisFile)) {
                         return file;
                     }
                 });
                 // const noIndexFiles = files.filter((file) => reg.test(file as string));
                 return Promise.all(noIndexFiles.map((dbFile) => {
-                    return ReadFile(path.join(baseLocation, dbFile));
+                    return safeReadFile(path.join(baseLocation, dbFile));
                 }));
             })
-            .then((filesRawData: string[]) => {
-                return Promise.all(filesRawData.map((rawData) => safeParse(rawData)));
+            .then((filesRawData: any[]) => {
+                return Promise.all(filesRawData.map((rawData) => {
+                    if (rawData === false) {
+                        return new Promise((rs) => rs(false));
+                    } else {
+                        return safeParse(rawData);
+                    }
+                }));
             })
             .then((filesData: any[]): Promise<string[][][]> => {
                 return Promise.all(filesData.map((fd) => {
@@ -147,7 +196,25 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: ISto
     });
 };
 
-const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
+// Search for keys. If a key is found test to see if it is parsable. If not search
+// backup location and test if that file is parsable. If not then return null.
+// If so then copy backup to baseLocation then return the backup.
+const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: IStorageDriverExtended): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(baseLocation)
+            .then((bool): Promise<string[]> => {
+                if (bool === false) {
+                    return new Promise((res) => res([]));
+                } else {
+                    return readAllDir(baseLocation, dirLocation, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const readAllLocations = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(base)
             .then((files) => {
@@ -155,7 +222,7 @@ const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverEx
                 const vers = new RegExp('`v');
                 // don't try and read index files or the version directory
                 const filteredFiles = files.filter((file) => {
-                    const thisFile = file.toString();
+                    const thisFile = String(file);
                     if (!reg.test(thisFile) && !vers.test(thisFile)) {
                         return file;
                     }
@@ -165,6 +232,21 @@ const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverEx
                     return Storage.allKeys;
                 } else {
                     return readKeysSafety(base, dir, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(base)
+            .then((bool): Promise<string[]> => {
+                if (bool === false) {
+                    return new Promise((res) => res([]));
+                } else {
+                    return readAllLocations(base, dir, Storage);
                 }
             })
             .then(resolve)

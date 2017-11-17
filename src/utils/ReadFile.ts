@@ -1,31 +1,24 @@
-import {readFile, existsSync} from 'fs';
+import {readFile} from 'fs';
+import {IsafeReadFileOptions} from './index';
 import ErrnoException = NodeJS.ErrnoException;
 
-export interface IReadFileOptions {
-    encoding?: string | null;
-    flag?: string;
-}
-
-export const ReadFile = (path: string, options?: IReadFileOptions): Promise<string> => {
+export const ReadFile = (path: string | number, options?: IsafeReadFileOptions): Promise<any> => {
     return new Promise((resolve, reject) => {
-        const Options: IReadFileOptions = {};
+        const Options: IsafeReadFileOptions = {};
         if (!options) {
-            Options.encoding = null;
+            Options.encoding = 'utf8';
             Options.flag = 'r';
         } else {
             if (!options.encoding) {
-                Options.encoding = null;
+                Options.encoding = 'utf8';
             }
             if (!options.flag) {
                 Options.flag = 'r';
             }
         }
-        if (!existsSync(path)) {
-            return reject(new Error(`:::Storage::: ReadFile Error: trying to read a file that does not exist.`));
-        }
         readFile(path, Options, (err: ErrnoException, data: string | Buffer) => {
             if (err) {
-                return reject(new Error(':::Storage::: ReadFile Error. ' + err.message));
+                return reject(err);
             } else {
                 data = data as string;
                 resolve(data);

@@ -1,6 +1,6 @@
 import {IStorageDriverExtended} from '../types';
-import {existsSync} from 'fs';
-import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPasteandBase, MakeVersionDirPast, UnlinkFile} from '../utils';
+import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists} from '../utils';
+import {safeReadFile} from '../utils/safeReadFile';
 const path = require('path');
 
 const removeBaseWriteBackup = (base: string, backupDir: string, data: string): Promise<null> => {
@@ -10,6 +10,10 @@ const removeBaseWriteBackup = (base: string, backupDir: string, data: string): P
             .then(resolve)
             .catch(reject);
     });
+};
+
+export const indexCheck = (index: string) => {
+    return (index === '[{"key":null,"value":[]}]' || index === '[{"key":null,"value":[null]}]' || index === '[{"key":null, "value":[]}]' || index === '[{"key":null, "value":[null]}]' || index === '[{"key": null, "value": []}]' || index === '[ { key: null, value: [] } ]');
 };
 
 export const StoreIndex = (key: string, index: string, Storage: IStorageDriverExtended): Promise<any> => {
@@ -23,11 +27,48 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                     .then(() => SafeWrite(writePath, StringifiedJSON));
             }));
         };
+        let stringIndex: string;
         // Always store
         return stringifyJSON(index)
             .then((data) => {
+                stringIndex = data;
+                return safeReadFile(path.join(baseLocation, `index_${key}.db`));
+            })
+            .then((dataBool) => {
+                if (dataBool === false) {
+                    return safeDirExists(fileLocation);
+                } else {
+                    if (indexCheck(stringIndex)) {
+                        return removeBaseWriteBackup(path.join(baseLocation, `index_${key}.db`), fileLocation, stringIndex);
+                    } else {
+                        return CopyAndWrite(path.join(baseLocation, `index_${key}.db`), path.join(fileLocation, 'past'), stringIndex);
+                    }
+                }
+            })
+            .then((dataBool) => {
+                if (dataBool === false) {
+                    if (indexCheck(index)) {
+                        // neither backup or base file exists. - resolve
+                        return new Promise((res) => res());
+                    } else {
+                        return MakeVersionDirPast(fileLocation, returnMany, stringIndex);
+                    }
+                } else if (dataBool === null) {
+                    return new Promise((res) => res());
+                } else {
+                    if (indexCheck(stringIndex)) {
+                        return SafeWrite(path.join(fileLocation, 'past'), stringIndex);
+                    } else {
+                        return WriteNewPastandBase(fileLocation, path.join(baseLocation, `index_${key}.db`), index);
+                    }
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+       /* return stringifyJSON(index)
+            .then((data) => {
                 if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
-                    if (data === '[{"key":null,"value":[]}]') {
+                    if (indexCheck(data)) {
                         // the index is null - remove base file and write this to backup
                         return removeBaseWriteBackup(path.join(baseLocation, `index_${key}.db`), fileLocation, data);
                     } else {
@@ -36,7 +77,7 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                     }
                 } else {
                     if (existsSync(fileLocation)) {
-                        if (index === '[{"key":null,"value":[]}]') {
+                        if (indexCheck(index)) {
                             // the base file does not exist - but the backup does
                             // do not write to base file but write this to backup
                             return SafeWrite(path.join(fileLocation, 'past'), data);
@@ -44,7 +85,7 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                             return WriteNewPasteandBase(fileLocation, baseLocation, index);
                         }
                     } else {
-                        if (index === '[{"key":null,"value":[]}]') {
+                        if (indexCheck(index)) {
                             // neither backup or base file exists. - resolve
                             return new Promise((res) => res());
                         } else {
@@ -54,6 +95,6 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                 }
             })
             .then(resolve)
-            .catch(reject);
+            .catch(reject);*/
     });
 };

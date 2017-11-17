@@ -5,6 +5,7 @@
     "main": "dist/bundle.js",
     "types": "dist/bundle.d.ts",
     "scripts": {
+        "test": "jest --no-cache --config=./spec/jest.json",
         "build": "webpack"
     },
     "repository": "https://github.com/tedb-org/tedb-electron-storage.git",
@@ -39,7 +40,7 @@
         "babel-preset-stage-0": "^6.24.1",
         "clean-webpack-plugin": "^0.1.17",
         "jest": "^21.2.1",
-        "tedb": "^0.2.16",
+        "tedb": "^0.3.1",
         "ts-loader": "^3.1.1",
         "typescript": "^2.6.1",
         "uglifyjs-webpack-plugin": "^1.0.1",

@@ -1,6 +1,6 @@
 import {IStorageDriverExtended} from '../types';
-import {existsSync} from 'fs';
-import {RmDir, UnlinkFile, safeParse, ReadFile, CopyFile, stringifyJSON} from '../utils';
+import {indexCheck} from './StoreIndex';
+import {RmDir, UnlinkFile, safeParse, safeReadFile, CopyFile, stringifyJSON, safeDirExists} from '../utils';
 const path = require('path');
 
 /**
@@ -38,11 +38,28 @@ const isBackupNull = (key: string, base: string, dir: string, data: any) => {
     return new Promise((resolve, reject) => {
         return stringifyJSON(data)
             .then((stringData) => {
-                if (stringData === '[{"key":null,"value":[]}]') {
+                if (indexCheck(stringData)) {
                     // base is missing and backup is empty -> remove both
                     return deleteBackupFileAndDir(dir);
                 } else {
                     return copyAndReturn(key, base, dir, data);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const testBackupParse = (data: any, dir: string, key: string, base: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeParse(data)
+            .then((databool) => {
+                if (databool === false) {
+                    // delete and resolve
+                    return deleteBackupFileAndDir(dir);
+                } else {
+                    // copy and write and return -> do not return '[{"key":null,"value":[]}]'
+                    return isBackupNull(key, base, dir, databool);
                 }
             })
             .then(resolve)
@@ -61,7 +78,17 @@ const isBackupNull = (key: string, base: string, dir: string, data: any) => {
  */
 const testBackup = (base: string, dir: string, key: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if (existsSync(path.join(dir, 'past'))) {
+        return safeReadFile(path.join(dir, 'past'))
+            .then((databool) => {
+                if (databool === false) {
+                    return RmDir(dir);
+                } else {
+                    return testBackupParse(databool, dir, key, base);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(path.join(dir, 'past'))) {
             // read file to see if it is parsable, if not delete, if so
             // copy and write. and resolve
             return ReadFile(path.join(dir, 'past'))
@@ -82,7 +109,7 @@ const testBackup = (base: string, dir: string, key: string): Promise<any> => {
             return RmDir(dir)
                 .then(resolve)
                 .catch(reject);
-        }
+        }*/
     });
 };
 
@@ -98,6 +125,45 @@ const RemoveAll = (base: string, dir: string, key: string): Promise<null> => {
     return new Promise((resolve, reject) => {
         return UnlinkFile(path.join(base, `index_${key}.db`))
             .then(() => deleteBackupFileAndDir(dir))
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const rmdirAndBase = (base: string, key: string, dir: string): Promise<any>  => {
+    return new Promise((resolve, reject) => {
+        return RmDir(dir)
+            .then(() => UnlinkFile(path.join(base, `index_${key}.db`)))
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const nextFileCheckParse = (data: any, dir: string, base: string, key: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeParse(data)
+            .then((databool) => {
+                if (databool === false) {
+                    return RemoveAll(base, dir, key);
+                } else {
+                    return copyAndReturn(key, base, dir, databool);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const nextFileCheck = (dir: string, base: string, key: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeReadFile(path.join(dir, 'past'))
+            .then((databool) => {
+                if (databool === false) {
+                    return rmdirAndBase(base, key, dir);
+                } else {
+                    return nextFileCheckParse(databool, dir, base, key);
+                }
+            })
             .then(resolve)
             .catch(reject);
     });
@@ -120,7 +186,17 @@ const RemoveAll = (base: string, dir: string, key: string): Promise<null> => {
  */
 const checkBackupAndReplace = (base: string, dir: string, key: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if (existsSync(dir)) {
+        return safeDirExists(dir)
+            .then((databool) => {
+                if (databool === false) {
+                    return UnlinkFile(path.join(base, `index_${key}.db`));
+                } else {
+                    return nextFileCheck(dir, base, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(dir)) {
             // backup exists
             if (existsSync(path.join(dir, 'past'))) {
                 // backup file exists
@@ -149,23 +225,13 @@ const checkBackupAndReplace = (base: string, dir: string, key: string): Promise<
             return UnlinkFile(path.join(base, `index_${key}.db`))
                 .then(resolve)
                 .catch(reject);
-        }
+        }*/
     });
 };
 
-/**
- * Test if current data location is readable
- * if So -> resolve data
- * if Not -> check backup data
- * @param {string} base
- * @param {string} dir
- * @param {string} key
- * @returns {Promise<any>}
- */
-const testLocationAndReturn = (base: string, dir: string, key: string): Promise<any> => {
+const testLocationAndReturnParse = (data: any, base: string, dir: string, key: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        return ReadFile(path.join(base, `index_${key}.db`))
-            .then((rawData) => safeParse(rawData))
+        return safeParse(data)
             .then((dataBool) => {
                 if (dataBool === false) {
                     // file was unreadable. check backup. if exists replace and return
@@ -182,6 +248,46 @@ const testLocationAndReturn = (base: string, dir: string, key: string): Promise<
 };
 
 /**
+ * Test if current data location is readable
+ * if So -> resolve data
+ * if Not -> check backup data
+ * @param {string} base
+ * @param {string} dir
+ * @param {string} key
+ * @returns {Promise<any>}
+ */
+const testLocationAndReturn = (base: string, dir: string, key: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeReadFile(path.join(base, `index_${key}.db`))
+            .then((rawData) => {
+                if (rawData === false) {
+                    return checkBackupAndReplace(base, dir, key);
+                } else {
+                    return testLocationAndReturnParse(rawData, base, dir, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const readNext = (dirLocation: string, baseLocation: string, key: string) => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(dirLocation)
+            .then((databool) => {
+                if (databool === false) {
+                    // no dir found
+                    return new Promise((rs) => rs());
+                } else {
+                    return testBackup(baseLocation, dirLocation, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+/**
  * Base method
  * Test if the base file IE the current fie exists
  * if So -> test if the location is readable
@@ -189,7 +295,7 @@ const testLocationAndReturn = (base: string, dir: string, key: string): Promise<
  *      if So -> test backup if readable
  *      if Not -> resolve nothing
  * @param {string} key
- * @param {TElectronStorage} Storage
+ * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
  * @constructor
  */
@@ -198,7 +304,17 @@ export const FetchIndex = (key: string, Storage: IStorageDriverExtended): Promis
         const baseLocation = Storage.collectionPath;
         const dirLocation = path.join(baseLocation, Storage.version, 'states', `index_${key}`);
         // check if exists
-        if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
+        return safeReadFile(path.join(baseLocation, `index_${key}.db`))
+            .then((databool) => {
+                if (databool === false) {
+                    return readNext(dirLocation, baseLocation, key);
+                } else {
+                    return testLocationAndReturn(baseLocation, dirLocation, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
             // base location was found.
             return testLocationAndReturn(baseLocation, dirLocation, key)
                 .then(resolve)
@@ -213,6 +329,6 @@ export const FetchIndex = (key: string, Storage: IStorageDriverExtended): Promis
                 // no directory found
                 resolve();
             }
-        }
+        }*/
     });
 };

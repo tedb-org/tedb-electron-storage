@@ -3,6 +3,9 @@
     "globals": {
         "__TS_CONFIG__": "<rootDir>/spec/tsconfig.json"
     },
+    "transformIgnorePatterns": [
+        "<rootDir>/node_modules/(?!tedb)"
+    ],
     "transform": {
         "^.+\\.(ts|js)$": "<rootDir>/spec/preprocessor.js"
     },

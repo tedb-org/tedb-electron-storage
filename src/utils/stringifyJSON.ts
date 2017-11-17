@@ -2,7 +2,7 @@
 export const stringifyJSON = (data: any): Promise<string> => {
     return new Promise((resolve, reject) => {
         try {
-            if (typeof data === 'string') {
+            if (Object.prototype.toString.call(data) === '[object String]') {
                 resolve(data);
             } else {
                 const json = JSON.stringify(data);

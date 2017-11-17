@@ -13,7 +13,7 @@ let dbName: string;
 
 beforeAll(() => {
     dbAppName = 'tedb-integration-storage-unique-index-tests';
-    dbName = 'tedb';
+    dbName = 'tedb-u';
     Storage = new ElectronStorage(dbAppName, dbName);
     TestDB = new Datastore({storage: Storage});
 });

@@ -1,5 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex} from './index';
+import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex, Exists} from './index';
 import {existsSync, mkdirSync} from 'fs';
 import {AppDirectory} from '../AppDirectory';
 const path = require('path');
@@ -69,6 +69,10 @@ export class ElectronStorage implements IStorageDriverExtended {
 
     public keys(): Promise<string[]> {
         return Keys(this);
+    }
+
+    public exists(key: string, index: any, fieldName: string): Promise<any> {
+        return Exists(key, index, fieldName, this);
     }
 
     public clear(): Promise<null> {

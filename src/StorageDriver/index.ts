@@ -5,6 +5,7 @@ export {FetchIndex} from './FetchIndex';
 export {Iterate} from './Iterate';
 export {Keys} from './Keys';
 export {RemoveItem} from './RemoveItem';
-export {StoreIndex} from './StoreIndex';
+export {StoreIndex, indexCheck} from './StoreIndex';
 export {RemoveIndex} from './RemoveIndex';
 export {ElectronStorage} from './Driver';
+export {Exists} from './Exists';

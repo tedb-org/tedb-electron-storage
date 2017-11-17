@@ -1,6 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {existsSync} from 'fs';
-import {safeParse, UnlinkFile, ReadFile, RmDir, CopyFile} from '../utils';
+import {safeParse, UnlinkFile, safeReadFile, RmDir, CopyFile, safeDirExists} from '../utils';
 const path = require('path');
 
 /*
@@ -13,7 +12,7 @@ const path = require('path');
  * base current file does not exist if this is called
  * @param {string} fileLocation
  * @param {string} key
- * @param {TElectronStorage} Storage
+ * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
  */
 const deleteBackupFileAndDir = (fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<null> => {
@@ -45,6 +44,44 @@ const copyAndReturn = (key: string, base: string, backup: string, data: any): Pr
     });
 };
 
+const rmDir = (fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        // remove the directory because 'past' does not exist and resolve.
+        return safeDirExists(fileLocation)
+            .then((bool): Promise<any> => {
+                if (bool === false) {
+                    // no dir found
+                    return new Promise((res) => res());
+                } else {
+                    // remove dir
+                    return RmDir(fileLocation);
+                }
+            })
+            .then(() => {
+                Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
+                resolve();
+            })
+            .catch(reject);
+    });
+};
+
+const testBackupParse = (rawData: any, baseLocation: string, fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeParse(rawData)
+            .then((dataBool) => {
+                if (dataBool === false) {
+                    // delete and resolve
+                    return deleteBackupFileAndDir(fileLocation, key, Storage);
+                } else {
+                    // copy and write and return
+                    return copyAndReturn(key, baseLocation, fileLocation, dataBool);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
 /**
  * Test if the backup file exists
  * if So -> Test if readable and - parse - if parsable copy over to base else remove
@@ -52,12 +89,24 @@ const copyAndReturn = (key: string, base: string, backup: string, data: any): Pr
  * @param {string} baseLocation - current data
  * @param {string} fileLocation - past data
  * @param {string} key
- * @param {TElectronStorage} Storage
+ * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
  */
 const testBackup = (baseLocation: string, fileLocation: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if (existsSync(path.join(fileLocation, 'past'))) {
+        return safeReadFile(path.join(fileLocation, 'past'))
+            .then((databool) => {
+                if (databool === false ) {
+                    // file does not exist remove key and directory
+                    return rmDir(fileLocation, key, Storage);
+                } else {
+                    // file was found
+                    return testBackupParse(databool, baseLocation, fileLocation, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(path.join(fileLocation, 'past'))) {
             // read file to see if it is parsable, if not delete, if so
             // copy and write. and resolve.
             return ReadFile(path.join(fileLocation, 'past'))
@@ -81,7 +130,71 @@ const testBackup = (baseLocation: string, fileLocation: string, key: string, Sto
                     resolve();
                 })
                 .catch(reject);
-        }
+        }*/
+    });
+};
+
+const unlinkStorage = (base: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        // delete base and remove key from all keys
+        return UnlinkFile(path.join(base, `${key}.db`))
+            .then(() => {
+                Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
+                resolve();
+            })
+            .catch(reject);
+    });
+};
+
+const unlinkandDir = (base: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        // delete base and remove key from all keys
+        return UnlinkFile(path.join(base, `${key}.db`))
+            .then(() => {
+                Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
+                resolve();
+            })
+            .catch(reject);
+    });
+};
+
+const readBackupFilesTestPARSE = (rawData: any, base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeParse(rawData)
+        .then((dataBool) => {
+            if (dataBool === false) {
+                // delete file and directory and base location and resolve.
+                // remove key from list
+                return UnlinkFile(path.join(base, `${key}.db`))
+                    .then(() => UnlinkFile(path.join(backup, 'past')))
+                    .then(() => RmDir(backup))
+                    .then(() => {
+                        Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
+                        resolve();
+                    })
+                    .catch(reject);
+            } else {
+                // data is found and parsable. write to base and resolve data
+                return copyAndReturn(key, base, backup, dataBool);
+            }
+        })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const readBackupFileTest = (backup: string, base: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeReadFile(path.join(backup, 'past'))
+            .then((databool) => {
+                if (databool === false) {
+                    return unlinkandDir(base, key, Storage);
+                } else {
+                    return readBackupFilesTestPARSE(databool, base, backup, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
     });
 };
 
@@ -98,12 +211,22 @@ const testBackup = (baseLocation: string, fileLocation: string, key: string, Sto
  * @param {string} base
  * @param {string} backup
  * @param {string} key
- * @param {TElectronStorage} Storage
+ * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
  */
 const checkBackupAndReplace = (base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if (existsSync(backup)) {
+        return safeDirExists(backup)
+            .then((bool) => {
+                if (bool === false) {
+                    return unlinkStorage(base, key, Storage);
+                } else {
+                    return readBackupFileTest(backup, base, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(backup)) {
             // dir exists
             if (existsSync(path.join(backup, 'past'))) {
                 // backup file exists
@@ -146,24 +269,13 @@ const checkBackupAndReplace = (base: string, backup: string, key: string, Storag
                     resolve();
                 })
                 .catch(reject);
-        }
+        }*/
     });
 };
 
-/**
- * Test if current data location is readable.
- * if So -> resolve the data
- * if Not -> Check backup data
- * @param {string} base
- * @param {string} backup
- * @param {string} key
- * @param {TElectronStorage} Storage
- * @returns {Promise<any>}
- */
-const testLocationAndReturn = (base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+const testLocationAndReturnParse = (rawData: any, base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
-        return ReadFile(path.join(base, `${key}.db`))
-            .then((rawData) => safeParse(rawData))
+        return safeParse(rawData)
             .then((dataBool): Promise<any> => {
                 if (dataBool === false) {
                     // file was unreadable. Check backup. if exists replace and return
@@ -180,6 +292,49 @@ const testLocationAndReturn = (base: string, backup: string, key: string, Storag
 };
 
 /**
+ * Test if current data location is readable.
+ * if So -> resolve the data
+ * if Not -> Check backup data
+ * @param {string} base
+ * @param {string} backup
+ * @param {string} key
+ * @param {IStorageDriverExtended} Storage
+ * @returns {Promise<any>}
+ */
+const testLocationAndReturn = (base: string, backup: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeReadFile(path.join(base, `${key}.db`))
+            .then((databool) => {
+                if (databool === false) {
+                    return checkBackupAndReplace(base, backup, key, Storage);
+                } else {
+                    return testLocationAndReturnParse(databool, base, backup, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const testFileLocation = (fileLocation: string, baseLocation: string, key: string, Storage: IStorageDriverExtended): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(fileLocation)
+            .then((bool) => {
+                if (bool === false) {
+                    // dir does not exist  and base key was not found remove key
+                    Storage.allKeys = [...Storage.allKeys.filter((cur) => cur !== key)];
+                    return new Promise((res) => res());
+                } else {
+                    // backup dir was found
+                    return testBackup(baseLocation, fileLocation, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+/**
  * Base method
  * Test if the base file IE the current file exists
  * if So -> test if the location is readable
@@ -187,7 +342,7 @@ const testLocationAndReturn = (base: string, backup: string, key: string, Storag
  *  if So -> test backup if readable
  *  if Not -> resolve nothing
  * @param {string} key
- * @param {TElectronStorage} Storage
+ * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
  * @constructor
  */
@@ -196,7 +351,19 @@ export const GetItem = (key: string, Storage: IStorageDriverExtended): Promise<a
         const baseLocation = Storage.collectionPath;
         const fileLocation = path.join(baseLocation, Storage.version, 'states', key);
         // check if exists
-        if (existsSync(path.join(baseLocation, `${key}.db`))) {
+        return safeReadFile(path.join(baseLocation, `${key}.db`))
+            .then((databool) => {
+                if (databool === false) {
+                    // check backup
+                    return testFileLocation(fileLocation, baseLocation, key, Storage);
+                } else {
+                    // base location was found.
+                    return testLocationAndReturn(baseLocation, fileLocation, key, Storage);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+        /*if (existsSync(path.join(baseLocation, `${key}.db`))) {
             // base location was found.
             return testLocationAndReturn(baseLocation, fileLocation, key, Storage)
                 .then(resolve)
@@ -211,6 +378,6 @@ export const GetItem = (key: string, Storage: IStorageDriverExtended): Promise<a
                 // no directory or file was found. resolve
                 resolve();
             }
-        }
+        }*/
     });
 };

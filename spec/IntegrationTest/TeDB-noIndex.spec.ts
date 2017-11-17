@@ -13,7 +13,7 @@ let dbName: string;
 
 beforeAll(() => {
     dbAppname = 'tedb-integration-storage-noIndex-test';
-    dbName = 'tedb';
+    dbName = 'tedb-ni';
     Storage = new ElectronStorage(dbAppname, dbName);
     TestDB = new Datastore({storage: Storage});
 });
@@ -133,12 +133,16 @@ describe('tedb integration tests no index', () => {
     });
 
     test('collection scan - not parsable and not backup directory at all', () => {
+        expect.assertions(3);
         return AppendFile(file1, '&')
             .then(() => UnlinkFile(path.join(backupFile1, 'past')))
             .then(() => RmDir(path.join(Bdir, `${obj1._id}`)))
             .then(() => TestDB.find({_id: obj1._id}).exec())
-            .then((item) => {
-                console.log(item);
+            .then((items) => {
+                items = items as any[];
+                expect(items.length).toEqual(0);
+                expect(existsSync(file1)).toBeFalsy();
+                expect(existsSync(backupFile1)).toBeFalsy();
             });
     });
 });

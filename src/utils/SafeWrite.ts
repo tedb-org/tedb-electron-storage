@@ -1,6 +1,17 @@
-import {FlushStorage, IFlushStorageOptions, WriteFile} from './index';
-import {existsSync} from 'fs';
+import {FlushStorage, IFlushStorageOptions, WriteFile, safeReadFile} from './index';
 const path = require('path');
+
+const safeFlush = (options: any, filename: string, data: any): Promise<null> => {
+    return new Promise((resolve, reject) => {
+        return FlushStorage(options)
+            .then(() => FlushStorage(filename))
+            .then(() => WriteFile(filename, data))
+            .then(() => FlushStorage(filename))
+            .then(() => FlushStorage(options))
+            .then(resolve)
+            .catch(reject);
+    });
+};
 
 export const SafeWrite = (filename: string, data: string | Buffer | Uint8Array): Promise<null> => {
     return new Promise((resolve, reject) => {
@@ -8,17 +19,15 @@ export const SafeWrite = (filename: string, data: string | Buffer | Uint8Array):
             filename: path.dirname(filename),
             isDir: true,
         };
-
-        if (!existsSync(filename)) {
-            return reject(new Error(`SafeWrite Error: No file named ${filename} to write to`));
-        } else {
-            return FlushStorage(options)
-                .then(() => FlushStorage(filename))
-                .then(() => WriteFile(filename, data))
-                .then(() => FlushStorage(filename))
-                .then(() => FlushStorage(options))
-                .then(resolve)
-                .catch(reject);
-        }
+        return safeReadFile(filename)
+            .then((dataBool): Promise<null> => {
+                if (dataBool === false) {
+                    return new Promise((res) => res());
+                } else {
+                    return safeFlush(options, filename, data);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
     });
 };

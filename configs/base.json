@@ -10,7 +10,7 @@
         "sourceMap": true,
         "declaration": true,
         "importHelpers": true,
-        "removeComments": false,
+        "removeComments": true,
         "noImplicitAny": true,
         "noEmitOnError": true,
         "strictNullChecks": true

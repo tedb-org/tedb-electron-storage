@@ -1,5 +1,6 @@
 export {IStorageDriverExtended, TiteratorCB} from './types';
-export {GetItem, SetItem, Clear, FetchIndex, Iterate, Keys, RemoveItem, StoreIndex, RemoveIndex, ElectronStorage} from './StorageDriver';
+export {GetItem, SetItem, Clear, FetchIndex, Iterate, Keys, RemoveItem, StoreIndex, RemoveIndex, ElectronStorage, indexCheck} from './StorageDriver';
+export {AppDirectory, IAppDirectory} from './AppDirectory';
 export {
     TruncateFile,
     OpenFile,
@@ -11,8 +12,9 @@ export {
     FileSync,
     FlushStorage, IFlushStorageOptions,
     WriteFile,
+    ReadFile,
     SafeWrite,
-    ReadFile, IReadFileOptions,
+    safeReadFile, IsafeReadFileOptions,
     parseJSON,
     stringifyJSON,
     EnsureDataFile,
@@ -22,9 +24,11 @@ export {
     LStat,
     ClearDirectory,
     CopyAndWrite,
-    WriteNewPasteandBase,
+    WriteNewPastandBase,
     MakeVersionDirPast,
     flattenStorageDriver,
     safeParse,
     removeBackup,
+    safeStat,
+    safeDirExists,
 } from './utils';
