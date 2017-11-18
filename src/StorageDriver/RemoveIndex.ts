@@ -3,6 +3,13 @@ import {UnlinkFile, removeBackup} from '../utils';
 import {safeReadFile} from '../utils/safeReadFile';
 const path = require('path');
 
+/**
+ * Since the file does exist remove backup directory and file + the current file
+ * @param {string} fileLocation
+ * @param {string} baseLocation
+ * @param {string} key
+ * @returns {Promise<any>}
+ */
 const doesExist = (fileLocation: string, baseLocation: string, key: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         return removeBackup(fileLocation)
@@ -13,7 +20,8 @@ const doesExist = (fileLocation: string, baseLocation: string, key: string): Pro
 };
 
 /**
- * When removing the index it the backup should also be removed.
+ * Main method
+ * removing an index should also remove its backup
  * @param {string} key
  * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
@@ -26,6 +34,7 @@ export const RemoveIndex = (key: string, Storage: IStorageDriverExtended): Promi
         return safeReadFile(path.join(baseLocation, `index_${key}.db`))
             .then((databool) => {
                 if (databool === false) {
+                    // base file does not exist remove backup
                     return removeBackup(fileLocation);
                 } else {
                     return doesExist(fileLocation, baseLocation, key);

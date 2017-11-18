@@ -61,10 +61,16 @@ describe('testing setItem', () => {
     });
 
     test('that past item is the firstItem not the secondItem', () => {
-        expect.assertions(4);
+        expect.assertions(8);
         if (existsSync(path.join(Storage.collectionPath, Eversion, 'states', '1234', 'past'))) {
             const file = readFileSync(path.join(Storage.collectionPath, Eversion, 'states', '1234', 'past'), {encoding: 'utf8'});
+            const file2 = readFileSync(path.join(Storage.collectionPath, '1234.db'), {encoding: 'utf8'});
+            const obj2 = JSON.parse(file2);
             const obj = JSON.parse(file);
+            expect(obj2.object.item).toEqual(2);
+            expect(obj2.object.item2).toEqual('notAstring');
+            expect(obj2.object.item4).toEqual(true);
+            expect(obj2.array).toEqual(expect.arrayContaining([4, 3, 2, 1]));
             expect(obj.object.item).toEqual(1);
             expect(obj.object.item2).toEqual('string');
             expect(obj.object.item4).toEqual(false);

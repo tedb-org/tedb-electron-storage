@@ -180,7 +180,7 @@ describe('testing tedb integration', () => {
         expect.assertions(3);
         return Storage.removeIndex('username')
             .then(() => {
-                expect(path.join(Storage.collectionPath, 'index_username.db')).toBeFalsy();
+                expect(existsSync(path.join(Storage.collectionPath, 'index_username.db'))).toBeFalsy();
                 expect(existsSync(path.join(Bdir, 'index_username'))).toBeFalsy();
                 expect(existsSync(path.join(Bdir, 'index_username', 'past'))).toBeFalsy();
             });

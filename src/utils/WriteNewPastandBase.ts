@@ -1,28 +1,22 @@
-import {EnsureDataFile, SafeWrite, safeDirExists} from './index';
+import {EnsureDataFile, SafeWrite} from './index';
 const path = require('path');
 
-const writeNewDataToBaseAndBackup = (dir: string, base: string, data: any): Promise<any> => {
+/**
+ * Main method
+ * Write data to past and current location
+ * @param {string} fileLocation
+ * @param {any} returnMany
+ * @param {string} baseLocation
+ * @param data
+ * @returns {Promise<any>}
+ * @constructor
+ */
+export const WriteNewPastandBase = (fileLocation: string, returnMany: any, baseLocation: string, data: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        return EnsureDataFile(path.join(dir, 'past'))
-            .then(() => SafeWrite(path.join(dir, 'past'), data))
-            .then(() => EnsureDataFile(base))
-            .then(() => SafeWrite(base, data))
-            .then(resolve)
-            .catch(reject);
-    });
-};
-
-export const WriteNewPastandBase = (fileLocation: string, baseLocation: string, data: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        // return EnsureDataFile(baseLocation)
-        return safeDirExists(fileLocation)
-            .then((bool) => {
-                if (bool === false) {
-                    return new Promise((res) => res());
-                } else {
-                    return writeNewDataToBaseAndBackup(fileLocation, baseLocation, data);
-                }
-            })
+        return EnsureDataFile(path.join(fileLocation, 'past'))
+            .then(() => SafeWrite(path.join(fileLocation, 'past'), data))
+            .then(() => EnsureDataFile(baseLocation))
+            .then(() => SafeWrite(baseLocation, data))
             .then(resolve)
             .catch(reject);
     });

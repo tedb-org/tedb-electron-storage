@@ -2,6 +2,14 @@ import {IStorageDriverExtended} from '../types';
 import {UnlinkFile, removeBackup, safeReadFile} from '../utils';
 const path = require('path');
 
+/**
+ * remove the key from all keys on the Storage driver class
+ * and remove the backup file
+ * @param {string} key
+ * @param {string} fileLocation
+ * @param {IStorageDriverExtended} Storage
+ * @returns {Promise<any>}
+ */
 const doesNotExist = (key: string, fileLocation: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         try {
@@ -15,6 +23,14 @@ const doesNotExist = (key: string, fileLocation: string, Storage: IStorageDriver
     });
 };
 
+/**
+ * Remove both backup and current file then the key off the storage driver class
+ * @param {string} key
+ * @param {string} baseLocation
+ * @param {string} fileLocation
+ * @param {IStorageDriverExtended} Storage
+ * @returns {Promise<any>}
+ */
 const doesExist = (key: string, baseLocation: string, fileLocation: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         return removeBackup(fileLocation)
@@ -32,7 +48,8 @@ const doesExist = (key: string, baseLocation: string, fileLocation: string, Stor
 };
 
 /**
- * Removing items will also remove the backup directory for the item as well
+ * Main method
+ * removing an item should also remove the backup.
  * @param {string} key
  * @param {IStorageDriverExtended} Storage
  * @returns {Promise<any>}
@@ -45,8 +62,10 @@ export const RemoveItem = (key: string, Storage: IStorageDriverExtended): Promis
         return safeReadFile(path.join(baseLocation, `${key}.db`))
             .then((databool) => {
                 if (databool === false) {
+                    // base file does not exist
                     return doesNotExist(key, fileLocation, Storage);
                 } else {
+                    // base file does exist
                     return doesExist(key, baseLocation, fileLocation, Storage);
                 }
             })

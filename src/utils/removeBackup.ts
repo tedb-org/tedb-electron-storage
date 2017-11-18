@@ -25,6 +25,12 @@ const safeToRead = (dirLocation: string): Promise<null> => {
     });
 };
 
+/**
+ * Main method
+ * Should remove the backup directory and the backup file
+ * @param {string} dirLocation
+ * @returns {Promise<any>}
+ */
 export const removeBackup = (dirLocation: string): Promise<null> => {
     return new Promise((resolve, reject) => {
         return safeDirExists(dirLocation)
