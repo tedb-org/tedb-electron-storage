@@ -13,7 +13,8 @@ export interface IStorageDriverExtended extends IStorageDriver {
     storeIndex(key: string, index: string): Promise<any>;
     fetchIndex(key: string): Promise<any[]>;
     removeIndex(key: string): Promise<null>;
-    iterate(iteratorCallback: (key: string, value: any, iteratorNumber?: number) => any): Promise<any>;
+    iterate(iteratorCallback: TiteratorCB): Promise<any>;
+    exists(key: string, index: any, fieldName: string): Promise<any>;
     keys(): Promise<string[]>;
     clear(): Promise<null>;
 }
