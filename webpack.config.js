@@ -37,12 +37,13 @@ if (production) {
 }
 
 module.exports = {
+    target: "electron-renderer",
     entry: './src/index.ts',
     devtool: 'inline-source-map',
     node: {
         __filename: false,
         __dirname: false,
-        fs: 'empty',
+        // fs: 'empty',
     },
     module: {
         rules: [
