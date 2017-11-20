@@ -2,19 +2,13 @@ import {safeReadFile, safeParse, EnsureDataFile, SafeWrite, parseJSON, stringify
 
 const continueOp = (dest: string, incomingData: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        let fileData: any;
         return safeParse(incomingData)
-            .then((bool) => {
-                if (bool === false) {
+            .then((booldata) => {
+                if (booldata === false) {
                     resolve();
                 } else {
-                    return parseJSON(incomingData)
-                        .then((data) => stringifyJSON(data)) // convert back to string
-                        .then((data) => {
-                            fileData = data;
-                            return EnsureDataFile(dest); // make sure destination exists before write
-                        })
-                        .then(() => SafeWrite(dest, fileData)) // write
+                    return EnsureDataFile(dest)
+                        .then(() => SafeWrite(dest, incomingData)) // write
                         .then(resolve)
                         .catch(reject);
                 }
@@ -25,7 +19,7 @@ const continueOp = (dest: string, incomingData: any): Promise<any> => {
 
 export const CopyFile = (src: string, dest: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        safeReadFile(src, {encoding: 'utf8'})
+        return safeReadFile(src)
             .then((dataBool) => {
                 if (dataBool === false) {
                     return new Promise((res) => res());

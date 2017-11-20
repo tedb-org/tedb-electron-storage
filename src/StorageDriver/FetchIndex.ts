@@ -1,6 +1,6 @@
 import {IStorageDriverExtended} from '../types';
 import {indexCheck} from './StoreIndex';
-import {RmDir, UnlinkFile, safeParse, safeReadFile, CopyFile, stringifyJSON, safeDirExists} from '../utils';
+import {safeRmDir, UnlinkFile, safeParse, safeReadFile, CopyFile, stringifyJSON, safeDirExists} from '../utils';
 const path = require('path');
 
 /**
@@ -12,7 +12,7 @@ const path = require('path');
 const deleteBackupFileAndDir = (dir: string): Promise<null> => {
     return new Promise((resolve, reject) => {
         return UnlinkFile(path.join(dir, 'past'))
-            .then(() => RmDir(dir))
+            .then(() => safeRmDir(dir))
             .then(resolve)
             .catch(reject);
     });
@@ -41,6 +41,21 @@ const isBackupNull = (key: string, base: string, dir: string, data: any) => {
                 if (indexCheck(stringData)) {
                     // base is missing and backup is empty -> remove both
                     return deleteBackupFileAndDir(dir);
+                } else {
+                    return copyAndReturn(key, base, dir, data);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const isBackupNullBase = (key: string, base: string, dir: string, data: any) => {
+    return new Promise((resolve, reject) => {
+        return stringifyJSON(data)
+            .then((stringData) => {
+                if (indexCheck(stringData)) {
+                    return RemoveAll(base, dir, key);
                 } else {
                     return copyAndReturn(key, base, dir, data);
                 }
@@ -81,7 +96,7 @@ const testBackup = (base: string, dir: string, key: string): Promise<any> => {
         return safeReadFile(path.join(dir, 'past'))
             .then((databool) => {
                 if (databool === false) {
-                    return RmDir(dir);
+                    return safeRmDir(dir);
                 } else {
                     return testBackupParse(databool, dir, key, base);
                 }
@@ -132,7 +147,7 @@ const RemoveAll = (base: string, dir: string, key: string): Promise<null> => {
 
 const rmdirAndBase = (base: string, key: string, dir: string): Promise<any>  => {
     return new Promise((resolve, reject) => {
-        return RmDir(dir)
+        return safeRmDir(dir)
             .then(() => UnlinkFile(path.join(base, `index_${key}.db`)))
             .then(resolve)
             .catch(reject);
@@ -146,7 +161,8 @@ const nextFileCheckParse = (data: any, dir: string, base: string, key: string): 
                 if (databool === false) {
                     return RemoveAll(base, dir, key);
                 } else {
-                    return copyAndReturn(key, base, dir, databool);
+                    return isBackupNullBase(key, base, dir, databool);
+                    // return copyAndReturn(key, base, dir, databool);
                 }
             })
             .then(resolve)
@@ -189,6 +205,7 @@ const checkBackupAndReplace = (base: string, dir: string, key: string): Promise<
         return safeDirExists(dir)
             .then((databool) => {
                 if (databool === false) {
+                    // backup dir does not exist remove current
                     return UnlinkFile(path.join(base, `index_${key}.db`));
                 } else {
                     return nextFileCheck(dir, base, key);
@@ -247,30 +264,6 @@ const testLocationAndReturnParse = (data: any, base: string, dir: string, key: s
     });
 };
 
-/**
- * Test if current data location is readable
- * if So -> resolve data
- * if Not -> check backup data
- * @param {string} base
- * @param {string} dir
- * @param {string} key
- * @returns {Promise<any>}
- */
-const testLocationAndReturn = (base: string, dir: string, key: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        return safeReadFile(path.join(base, `index_${key}.db`))
-            .then((rawData) => {
-                if (rawData === false) {
-                    return checkBackupAndReplace(base, dir, key);
-                } else {
-                    return testLocationAndReturnParse(rawData, base, dir, key);
-                }
-            })
-            .then(resolve)
-            .catch(reject);
-    });
-};
-
 const readNext = (dirLocation: string, baseLocation: string, key: string) => {
     return new Promise((resolve, reject) => {
         return safeDirExists(dirLocation)
@@ -309,7 +302,7 @@ export const FetchIndex = (key: string, Storage: IStorageDriverExtended): Promis
                 if (databool === false) {
                     return readNext(dirLocation, baseLocation, key);
                 } else {
-                    return testLocationAndReturn(baseLocation, dirLocation, key);
+                    return testLocationAndReturnParse(databool, baseLocation, dirLocation, key);
                 }
             })
             .then(resolve)

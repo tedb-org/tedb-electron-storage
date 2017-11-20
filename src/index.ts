@@ -31,4 +31,5 @@ export {
     removeBackup,
     safeStat,
     safeDirExists,
+    safeRmDir,
 } from './utils';

@@ -6,6 +6,18 @@ export interface IsafeReadFileOptions {
 }
 
 export const safeReadFile = (path: string, options?: IsafeReadFileOptions): Promise<any> => {
+    const Options: IsafeReadFileOptions = {};
+    if (!options) {
+        Options.encoding = 'utf8';
+        Options.flag = 'r';
+    } else {
+        if (!options.encoding) {
+            Options.encoding = 'utf8';
+        }
+        if (!options.flag) {
+            Options.flag = 'r';
+        }
+    }
     return new Promise((resolve, reject) => {
         let fd: number;
         let data: any;
@@ -16,7 +28,7 @@ export const safeReadFile = (path: string, options?: IsafeReadFileOptions): Prom
                     return new Promise((res) => res(false));
                 } else {
                     fd = fdbool;
-                    return ReadFile(fd);
+                    return ReadFile(fd, Options);
                 }
             })
             .then((databool) => {
