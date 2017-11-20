@@ -1,9 +1,9 @@
 {
     "name": "tedb-electron-storage",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "TeDB storage driver for Electron using single file method per object in collection",
     "main": "dist/bundle.js",
-    "types": "dist/bundle.d.ts",
+    "types": "dist/index.d.ts",
     "scripts": {
         "test": "jest --no-cache --config=./spec/jest.json",
         "build": "webpack"
