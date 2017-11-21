@@ -4238,9 +4238,9 @@ tar@^2.2.1:
     fstream "^1.0.2"
     inherits "2"
 
-tedb@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.3.2.tgz#b49f04878c6bedc0167a9a1a394afa3a36edfedc"
+tedb@0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.3.4.tgz#9ac9be21fed0a81ff191efa7dd410a57115abccd"
   dependencies:
     binary-type-tree "^1.2.3"
 

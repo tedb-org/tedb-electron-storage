@@ -40,7 +40,7 @@
         "babel-preset-stage-0": "^6.24.1",
         "clean-webpack-plugin": "^0.1.17",
         "jest": "^21.2.1",
-        "tedb": "^0.3.2",
+        "tedb": "0.3.4",
         "ts-loader": "^3.1.1",
         "typescript": "^2.6.1",
         "uglifyjs-webpack-plugin": "^1.0.1",
