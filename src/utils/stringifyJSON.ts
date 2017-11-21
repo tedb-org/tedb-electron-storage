@@ -9,7 +9,7 @@ export const stringifyJSON = (data: any): Promise<string> => {
                 resolve(json);
             }
         } catch (e) {
-            return reject(new Error(':::Storage::: stringifyJSON Error.'));
+            return reject(new Error(':::Storage::: stringifyJSON Error. ' + e.message));
         }
     });
 };

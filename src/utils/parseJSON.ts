@@ -11,7 +11,7 @@ export const parseJSON = (data: string): Promise<any> => {
                 resolve(json);
             }
         } catch (e) {
-            return reject(new Error(':::Storage::: parseJSON Error.' + e));
+            return reject(new Error(':::Storage::: parseJSON Error. ' + e));
         }
     });
 };

@@ -14,6 +14,8 @@ export const MakeVersionDirPast = (fileLocation: string, returnMany: any, data: 
         return MakeDir(fileLocation)
             .then(() => returnMany(data))
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: MakeVersionDirPast Error. ' + err.message));
+            });
     });
 };

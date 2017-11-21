@@ -1,4 +1,4 @@
-import {safeReadFile, safeParse, EnsureDataFile, SafeWrite, parseJSON, stringifyJSON} from './index';
+import {safeReadFile, safeParse, EnsureDataFile, SafeWrite} from './index';
 
 const continueOp = (dest: string, incomingData: any): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -13,7 +13,9 @@ const continueOp = (dest: string, incomingData: any): Promise<any> => {
                         .catch(reject);
                 }
             })
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: continueOp Error. ' + err.message));
+            });
     });
 };
 
@@ -28,6 +30,8 @@ export const CopyFile = (src: string, dest: string): Promise<any> => {
                 }
             })
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: CopyFile Error. ' + err.message));
+            });
     });
 };

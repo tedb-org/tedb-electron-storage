@@ -26,7 +26,7 @@ export const AppendFile = (file: string | Buffer | number, data: string | Buffer
         }
         appendFile(file, data, Options, (err) => {
             if (err) {
-                reject(new Error(':::Storage::: AppendFile Error'));
+                reject(new Error(':::Storage::: AppendFile Error. ' + err.message));
             } else {
                 resolve();
             }

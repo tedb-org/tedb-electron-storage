@@ -18,7 +18,7 @@ export const ReadFile = (path: string | number, options?: IsafeReadFileOptions):
         }
         readFile(path, Options, (err: ErrnoException, data: string | Buffer) => {
             if (err) {
-                return reject(err);
+                return reject(new Error(':::Storage::: ReadFile Error. ' + err.message));
             } else {
                 data = data as string;
                 resolve(data);

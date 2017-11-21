@@ -13,6 +13,8 @@ export const CopyAndWrite = (src: string, dest: string,  data: any): Promise<any
         return CopyFile(src, dest)
             .then(() => SafeWrite(src, data))
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: CopyAndWrite Error. ' + err.message));
+            });
     });
 };

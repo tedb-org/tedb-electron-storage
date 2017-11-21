@@ -18,6 +18,8 @@ export const WriteNewPastandBase = (fileLocation: string, returnMany: any, baseL
             .then(() => EnsureDataFile(baseLocation))
             .then(() => SafeWrite(baseLocation, data))
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: WriteNewPastandBase Error. ' + err.message));
+            });
     });
 };

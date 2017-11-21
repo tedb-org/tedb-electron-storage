@@ -46,7 +46,9 @@ export const safeReadFile = (path: string, options?: IsafeReadFileOptions): Prom
                     resolve(data);
                 }
             })
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: safeParse Error. ' + err.message));
+            });
     });
 };
 

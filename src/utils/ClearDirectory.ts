@@ -12,7 +12,9 @@ const deleteFile = (dir: string, file: string | Buffer) => {
                     resolve(UnlinkFile(filePath));
                 }
             })
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: deleteFile Error. ' + err.message));
+            });
     });
 };
 
@@ -28,6 +30,8 @@ export const ClearDirectory = (directory: string): Promise<null> => {
                 return RmDir(directory);
             })
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: ClearDirectory Error. ' + err.message));
+            });
     });
 };

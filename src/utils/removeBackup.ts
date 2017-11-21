@@ -43,6 +43,8 @@ export const removeBackup = (dirLocation: string): Promise<null> => {
                 }
             })
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: removeBackup Error. ' + err.message));
+            });
     });
 };
