@@ -2,8 +2,8 @@ import {Datastore, IDatastore} from 'tedb';
 import {ElectronStorage} from '../../src/StorageDriver';
 import {AppDirectory} from '../../src/AppDirectory';
 import {IStorageDriverExtended} from '../../src/types';
-import {existsSync} from 'fs';
-import {ClearDirectory, ReadFile, parseJSON, UnlinkFile, RmDir, AppendFile, SafeWrite} from '../../src/utils';
+import {existsSync} from 'graceful-fs';
+import {ClearDirectory, EnsureDataFile, safeReadFile, safeParse, UnlinkFile, RmDir, AppendFile, SafeWrite} from '../../src/utils';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -27,6 +27,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('tedb integration tests no index', () => {
     let Eversion: string;
     const docs: any = [
@@ -86,12 +87,17 @@ describe('tedb integration tests no index', () => {
 
     test('collection scan - no _id', () => {
         expect.assertions(4);
-        return ReadFile(file2)
-            .then((rawData) => parseJSON(rawData))
+        let o;
+        return safeReadFile(file2)
+            .then((rawData) => {
+                return safeParse(rawData as string);
+            })
             .then((obj) => {
                 delete obj._id;
-                return SafeWrite(file2, obj);
+                o = obj;
+                return EnsureDataFile(file2);
             })
+            .then(() => SafeWrite(file2, o))
             .then(() => TestDB.find({_id: obj2._id}).exec())
             .then((item) => {
                 item = item as any[];

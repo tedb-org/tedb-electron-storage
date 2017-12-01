@@ -23,11 +23,25 @@ export const FlushStorage = (options: string | IFlushStorageOptions): Promise<nu
             return resolve();
         }
 
-        return OpenFile(filename, flags, undefined)
-            .then(FileSync)
-            .then(CloseFile)
+        let fileDesc: number;
+        return OpenFile(filename, flags)
+            .then((fd) => {
+                if (fd === false) {
+                    return new Promise((res) => res(false));
+                } else {
+                    fileDesc = fd;
+                    return FileSync(fd);
+                }
+            })
+            .then((res): Promise<null> => {
+                if (res === false) {
+                    return new Promise((r) => r());
+                } else {
+                    return CloseFile(fileDesc);
+                }
+            })
             .then(resolve)
-            .catch((err) => {
+            .catch((err: any) => {
                 reject(new Error(':::Storage::: FlushStorage Error. ' + err.message));
             });
     });

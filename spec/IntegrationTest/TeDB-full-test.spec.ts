@@ -3,7 +3,7 @@ import {ElectronStorage} from '../../src/StorageDriver';
 import {AppDirectory} from '../../src/AppDirectory';
 import {IStorageDriverExtended} from '../../src/types';
 import {ClearDirectory, UnlinkFile, RmDir, AppendFile} from '../../src/utils';
-import {existsSync} from 'fs';
+import {existsSync} from 'graceful-fs';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -26,6 +26,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('testing tedb integration', () => {
     let Bdir;
     let Eversion;

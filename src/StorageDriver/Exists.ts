@@ -4,18 +4,15 @@ const path = require('path');
 
 const readAndRemoveParse = (rawData: any, key: string, index: any, fieldName: string) => {
     return new Promise((resolve, reject) => {
-        let resolveObj: any;
-        return  safeParse(rawData)
+        return safeParse(rawData)
             .then((dataBool) => {
                 if (dataBool === false) {
-                    resolveObj = {key, doesExist: false, index, fieldName};
-                    return new Promise((res) => res());
+                    return new Promise((res) => res({key, doesExist: false, index, fieldName}));
                 } else {
-                    resolveObj = {key, doesExist: true, index, fieldName};
-                    return new Promise((res) => res());
+                    return new Promise((res) => res({key, doesExist: true, index, fieldName}));
                 }
             })
-            .then(() => resolve(resolveObj))
+            .then(resolve)
             .catch(reject);
     });
 };
@@ -29,20 +26,9 @@ export const Exists = (key: string, index: any, fieldName: string, Storage: ISto
                     return new Promise((res) => res({key, doesExist: false, index, fieldName}));
                 } else {
                     return readAndRemoveParse(databool, key, index, fieldName);
-                    // return readAndRemovePossible(basePath, key, index, fieldName, Storage);
                 }
             })
             .then(resolve)
             .catch(reject);
-        /*return safeStat(basePath)
-            .then((boolStat) => {
-                if (boolStat === false) {
-                    return new Promise((res) => res({key, doesExist: false, index, fieldName}));
-                } else {
-                    return readAndRemovePossible(basePath, key, index, fieldName, Storage);
-                }
-            })
-            .then(resolve)
-            .catch(reject);*/
     });
 };

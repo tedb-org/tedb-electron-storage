@@ -1,4 +1,4 @@
-import {writeFile} from 'fs';
+import {writeFile} from 'graceful-fs';
 
 export interface IWriteFileOptions {
     encoding?: string | null;
@@ -12,7 +12,7 @@ export const WriteFile = (file: string | Buffer | number, data: string | Buffer 
         if (!options) {
             Options.encoding = 'utf8';
             Options.mode = 0o666;
-            Options.flag = 'w+';
+            Options.flag = 'w';
         } else {
             if (!options.encoding) {
                 Options.encoding = 'utf8';
@@ -21,7 +21,7 @@ export const WriteFile = (file: string | Buffer | number, data: string | Buffer 
                 Options.mode = 0o666;
             }
             if (!options.flag) {
-                Options.flag = 'w+';
+                Options.flag = 'w';
             }
         }
         writeFile(file, data, Options, (err) => {

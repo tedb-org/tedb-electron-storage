@@ -1,6 +1,6 @@
 import {IStorageDriverExtended} from '../types';
-import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex, Exists} from './index';
-import {existsSync, mkdirSync} from 'fs';
+import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex, Exists, CollectionSanitize} from './index';
+import {existsSync, mkdirSync} from 'graceful-fs';
 import {AppDirectory} from '../AppDirectory';
 const path = require('path');
 
@@ -73,6 +73,10 @@ export class ElectronStorage implements IStorageDriverExtended {
 
     public exists(key: string, index: any, fieldName: string): Promise<any> {
         return Exists(key, index, fieldName, this);
+    }
+
+    public collectionSanitize(keys: string[]): Promise<null> {
+        return CollectionSanitize(keys, this);
     }
 
     public clear(): Promise<null> {

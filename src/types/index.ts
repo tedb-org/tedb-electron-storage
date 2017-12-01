@@ -15,6 +15,7 @@ export interface IStorageDriverExtended extends IStorageDriver {
     removeIndex(key: string): Promise<null>;
     iterate(iteratorCallback: TiteratorCB): Promise<any>;
     exists(key: string, index: any, fieldName: string): Promise<any>;
+    collectionSanitize(keys: string[]): Promise<null>;
     keys(): Promise<string[]>;
     clear(): Promise<null>;
 }

@@ -1,4 +1,4 @@
-import {close} from 'fs';
+import {close} from 'graceful-fs';
 
 export const CloseFile = (fd: number): Promise<null> => {
     return new Promise((resolve, reject) => {

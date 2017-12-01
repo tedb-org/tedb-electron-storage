@@ -2,8 +2,8 @@ import {Index, Datastore, IDatastore} from 'tedb';
 import {ElectronStorage} from '../../src/StorageDriver';
 import {AppDirectory} from '../../src/AppDirectory';
 import {IStorageDriverExtended} from '../../src/types';
-import {existsSync} from 'fs';
-import {ClearDirectory, ReadFile, parseJSON, UnlinkFile, RmDir, AppendFile, SafeWrite} from '../../src/utils';
+import {existsSync} from 'graceful-fs';
+import {ClearDirectory, safeReadFile, parseJSON, safeParse, UnlinkFile, RmDir, AppendFile, SafeWrite} from '../../src/utils';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -27,6 +27,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('tedb integration tests non-unique index', () => {
     let Eversion;
     let toFind: AppDirectory;
@@ -64,17 +65,17 @@ describe('tedb integration tests non-unique index', () => {
             .then(() => {
                 file1 = path.join(Storage.collectionPath, 'index_isSynced.db');
                 file2 = path.join(Storage.collectionPath, Eversion, 'states', 'index_isSynced', 'past');
-                return ReadFile(file1);
+                return safeReadFile(file1);
             })
             .then((data) => {
-                return parseJSON(data);
+                return safeParse(data as string);
             })
             .then((data) => {
                 data1 = data;
-                return ReadFile(file2);
+                return safeReadFile(file2);
             })
             .then((data) => {
-                return parseJSON(data);
+                return safeParse(data as string);
             })
             .then((data) => {
                 data2 = data;
@@ -239,10 +240,10 @@ describe('tedb integration tests non-unique index', () => {
             .then(() => {
                 file1 = path.join(toFind.userData(), 'db', dbName, 'index_isSynced.db');
                 file2 = path.join(toFind.userData(), 'db', dbName, Eversion, 'states', 'index_isSynced', 'past');
-                return ReadFile(file2);
+                return safeReadFile(file2);
             })
             .then((data) => {
-                return parseJSON(data);
+                return safeParse(data as string);
             })
             .then((data) => {
                 data2 = data;

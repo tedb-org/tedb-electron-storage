@@ -4,8 +4,7 @@ const path = require('path');
 
 const removeAll = (dirLocation: string, base: string, key: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
-        return EnsureDataFile(path.join(dirLocation, key))
-            .then(() => EnsureDataFile(path.join(base, `${key}.db`)))
+        return EnsureDataFile(path.join(base, `${key}.db`))
             .then(() => EnsureDataFile(path.join(dirLocation, key, 'past')))
             .then(() => UnlinkFile(path.join(dirLocation, key, 'past')))
             .then(() => RmDir(path.join(dirLocation, key)))
@@ -29,9 +28,11 @@ const RemoveDirectoryAndFile = (base: string, dirLocation: string, key: string):
         return safeDirExists(path.join(dirLocation, key))
             .then((bool): Promise<string[]> => {
                 if (bool === false) {
-                    return removeAll(dirLocation, base, key);
-                } else {
+                    // return removeAll(dirLocation, base, key);
                     return removeJustbase(base, key);
+                } else {
+                    // directory exists remove dir/file and base
+                    return removeAll(dirLocation, base, key);
                 }
             })
             .then(resolve)
@@ -61,7 +62,7 @@ const WriteBackupToBaseReturn = (fileData: any, baseLocation: string): Promise<s
 
 interface IcomboRead {
     key: string;
-    rawData: string;
+    rawData: boolean | string | null;
     read: boolean;
 }
 const comboFileReadFMethod = (baseLocation: string, key: string): Promise<IcomboRead> => {
@@ -71,20 +72,20 @@ const comboFileReadFMethod = (baseLocation: string, key: string): Promise<Icombo
                 if (rawData === false) {
                     resolve({key, rawData: '', read: false});
                 } else {
-                    resolve({key, rawData: String(rawData), read: true});
+                    resolve({key, rawData, read: true});
                 }
             })
             .catch(reject);
     });
 };
-const comboFileReadMethod = (dirLocation: string, dir: string | Buffer, key: string | Buffer): Promise<IcomboRead> => {
+const comboFileReadMethod = (dirLocation: string, dir: string | Buffer, key: string): Promise<IcomboRead> => {
     return new Promise((resolve, reject) => {
         return safeReadFile(path.join(dirLocation, dir, 'past'))
             .then((rawData) => {
                 if (rawData === false) {
-                    resolve({key: String(key), rawData: '', read: false});
+                    resolve({key, rawData: '', read: false});
                 } else {
-                    resolve({key: String(key), rawData: String(rawData), read: true});
+                    resolve({key, rawData, read: true});
                 }
             })
             .catch(reject);
@@ -99,6 +100,13 @@ interface IcomboParse {
 
 const comboFileParseMethod = (obj: IcomboRead): Promise<IcomboParse> => {
     return new Promise((resolve, reject) => {
+        // since incoming data is either null | boolean | string make sure it is string
+        // following methods require it.
+        if (typeof obj.rawData === 'string') {
+            obj.rawData = obj.rawData as string;
+        } else {
+            obj.rawData = '' as string;
+        }
         return safeParse(obj.rawData)
             .then((fileData) => resolve({key: obj.key, parsedData: fileData, read: obj.read}))
             .catch(reject);
@@ -109,9 +117,6 @@ const readBackupDir = (dirLocation: string, baseLocation: string): Promise<strin
     return new Promise((resolve, reject) => {
         return ReadDir(dirLocation)
             .then((directories) => {
-                // const reg = new RegExp('index_');
-                // const noIndexDirectories = directories.filter((dir) => reg.test(dir as string));
-
                 // no Need to filter out index_ or version since files being searched were already filtered
                 return Promise.all(directories.map((dir) => {
                     return comboFileReadMethod(dirLocation, dir, dir);
@@ -192,19 +197,14 @@ const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorage
                 const vers = new RegExp('`v');
                 // don't try and read index files or the version directory
                 const noIndexFiles = files.filter((file) => {
-                    const thisFile = String(file);
-                    if (!reg.test(thisFile) && !vers.test(thisFile)) {
+                    if (!reg.test(file) && !vers.test(file)) {
                         return file;
                     }
                 });
-                // const noIndexFiles = files.filter((file) => reg.test(file as string));
                 return Promise.all(noIndexFiles.map((dbFile) => {
                     const key = String(dbFile).substr(0, String(dbFile).indexOf('.'));
                     return comboFileReadFMethod(baseLocation, key);
                 }));
-                /*return Promise.all(noIndexFiles.map((dbFile) => {
-                    return safeReadFile(path.join(baseLocation, dbFile));
-                }));*/
             })
             .then((filesRawData: IcomboRead[]) => {
                 return Promise.all(filesRawData.map((obj: IcomboRead): Promise<IcomboParse> => {
@@ -224,14 +224,14 @@ const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorage
                         return readBackupLocation(dirLocation, baseLocation, fd);
                     } else {
                         // resolve the actual key
-                        return (new Promise<string[][]>((res) => res([[fd.parsedData._id]])));
+                        return new Promise<string[][]>((res) => res([[fd.parsedData._id]]));
                     }
                 }));
             })
             .then((keys: string[][][]) => {
                 const incomingKeys = flattenStorageDriver(keys);
                 let KEYS: string[] = [];
-                incomingKeys.forEach((key) => {
+                incomingKeys.forEach((key: any) => {
                     KEYS = [key, ...KEYS];
                 });
                 resolve([...Storage.allKeys, ...KEYS]);
@@ -276,14 +276,13 @@ const readKeysSafetyBackup = (base: string, dir: string, Storage: IStorageDriver
                     } else {
                         // resolve the actual key
                         return WriteBackupToBaseReturn(fd.parsedData, base);
-                        // return (new Promise<string[][]>((res) => res([[fd._id]])));
                     }
                 }));
             })
             .then((keys: string[][]) => {
                 const incomingKeys = flattenStorageDriver(keys);
                 let KEYS: string[] = [];
-                incomingKeys.forEach((key) => {
+                incomingKeys.forEach((key: any) => {
                     KEYS = [key, ...KEYS];
                 });
                 resolve([...Storage.allKeys, ...KEYS]);
@@ -367,20 +366,19 @@ const readBackupAllLocations = (base: string, dir: string, Storage: IStorageDriv
 const readAllLocations = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         return ReadDir(base)
-            .then((files) => {
+            .then((files): Promise<string[]> => {
                 const reg = new RegExp('index_');
                 const vers = new RegExp('`v');
                 // don't try and read index files or the version directory
                 const filteredFiles = files.filter((file) => {
-                    const thisFile = String(file);
-                    if (!reg.test(thisFile) && !vers.test(thisFile)) {
+                    if (!reg.test(file) && !vers.test(file)) {
                         return file;
                     }
                 });
 
                 if (filteredFiles.length === Storage.allKeys.length) {
                     // return keys because they match current length
-                    return Storage.allKeys;
+                    return new Promise((res) => res(Storage.allKeys));
                 } else {
                     // key lengths did not match up
                     return readKeysSafety(base, dir, Storage);
@@ -404,8 +402,8 @@ const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverEx
                 }
             })
             .then((keys) => {
-                keys = keys.filter((k) => k !== undefined);
-                resolve(keys);
+                const filteredKeys = keys.filter((k) => k !== undefined);
+                resolve(filteredKeys);
             })
             .catch(reject);
     });

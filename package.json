@@ -23,6 +23,7 @@
         "node"
     ],
     "devDependencies": {
+        "@types/graceful-fs": "^4.1.2",
         "@types/jest": "^21.1.5",
         "@types/node": "^8.0.48",
         "@types/webpack": "^3.8.0",
@@ -40,12 +41,14 @@
         "babel-preset-stage-0": "^6.24.1",
         "clean-webpack-plugin": "^0.1.17",
         "jest": "^21.2.1",
-        "tedb": "0.3.4",
+        "tedb": "^0.4.3",
         "ts-loader": "^3.1.1",
         "typescript": "^2.6.1",
         "uglifyjs-webpack-plugin": "^1.0.1",
         "webpack": "^3.8.1",
         "webpack-bundle-analyzer": "^2.9.0"
     },
-    "dependencies": {}
+    "dependencies": {
+        "graceful-fs": "^4.1.11"
+    }
 }

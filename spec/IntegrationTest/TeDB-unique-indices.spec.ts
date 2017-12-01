@@ -2,8 +2,8 @@ import {Index, Datastore, IDatastore} from 'tedb';
 import {ElectronStorage} from '../../src/StorageDriver';
 import {AppDirectory} from '../../src/AppDirectory';
 import {IStorageDriverExtended} from '../../src/types';
-import {existsSync} from 'fs';
-import {ClearDirectory, ReadFile, parseJSON} from '../../src/utils';
+import {existsSync} from 'graceful-fs';
+import {ClearDirectory, safeReadFile, safeParse} from '../../src/utils';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -27,6 +27,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('tedb integration tests unique index', () => {
     let Eversion;
     const docs: any = [
@@ -77,17 +78,17 @@ describe('tedb integration tests unique index', () => {
             .then(() => {
                 file1 = path.join(Storage.collectionPath, 'index_username.db');
                 file2 = path.join(Bdir, 'past');
-                return ReadFile(file2);
+                return safeReadFile(file2);
             })
             .then((data) => {
-                return parseJSON(data);
+                return safeParse(data as string);
             })
             .then((data) => {
                 data1 = data;
-                return ReadFile(file2);
+                return safeReadFile(file2);
             })
             .then((data) => {
-                return parseJSON(data);
+                return safeParse(data as string);
             })
             .then((data) => {
                 data2 = data;

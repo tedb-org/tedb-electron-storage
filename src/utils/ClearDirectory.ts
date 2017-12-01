@@ -20,7 +20,7 @@ const deleteFile = (dir: string, file: string | Buffer) => {
 
 export const ClearDirectory = (directory: string): Promise<null> => {
     return new Promise((resolve, reject) => {
-        ReadDir(directory)
+        return ReadDir(directory)
             .then((files) => {
                 return Promise.all(files.map((file) => {
                     return deleteFile(directory, file);

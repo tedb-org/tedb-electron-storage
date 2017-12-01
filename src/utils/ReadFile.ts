@@ -1,8 +1,8 @@
-import {readFile} from 'fs';
+import {readFile, Stats} from 'graceful-fs';
 import {IsafeReadFileOptions} from './index';
 import ErrnoException = NodeJS.ErrnoException;
 
-export const ReadFile = (path: string | number, options?: IsafeReadFileOptions): Promise<any> => {
+export const ReadFile = (path: string, stats: Stats, options?: IsafeReadFileOptions): Promise<string | null> => {
     return new Promise((resolve, reject) => {
         const Options: IsafeReadFileOptions = {};
         if (!options) {

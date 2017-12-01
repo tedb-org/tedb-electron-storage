@@ -1,4 +1,4 @@
-import {stat, Stats} from 'fs';
+import {stat, Stats} from 'graceful-fs';
 import ErrnoException = NodeJS.ErrnoException;
 
 export const safeStat = (path: string | Buffer): Promise<Stats | boolean> => {

@@ -28,6 +28,7 @@ export {
     MakeVersionDirPast,
     flattenStorageDriver,
     safeParse,
+    RenameFile,
     removeBackup,
     safeStat,
     safeDirExists,

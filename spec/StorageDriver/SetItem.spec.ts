@@ -1,8 +1,9 @@
 import {ElectronStorage} from '../../src/StorageDriver';
 import {IStorageDriverExtended} from '../../src/types';
 import {AppDirectory} from '../../src/AppDirectory';
-import {ClearDirectory} from '../../src/utils';
-import {existsSync, readFileSync} from 'fs';
+import {ClearDirectory, safeParse} from '../../src/utils';
+import {existsSync, readFileSync} from 'graceful-fs';
+import {isEmpty} from 'tedb';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -23,7 +24,9 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('testing setItem', () => {
+    const a = new Buffer(3);
     let Eversion;
     const firstItem: any = {
         object: {
@@ -66,15 +69,18 @@ describe('testing setItem', () => {
             const file = readFileSync(path.join(Storage.collectionPath, Eversion, 'states', '1234', 'past'), {encoding: 'utf8'});
             const file2 = readFileSync(path.join(Storage.collectionPath, '1234.db'), {encoding: 'utf8'});
             const obj2 = JSON.parse(file2);
-            const obj = JSON.parse(file);
-            expect(obj2.object.item).toEqual(2);
-            expect(obj2.object.item2).toEqual('notAstring');
-            expect(obj2.object.item4).toEqual(true);
-            expect(obj2.array).toEqual(expect.arrayContaining([4, 3, 2, 1]));
-            expect(obj.object.item).toEqual(1);
-            expect(obj.object.item2).toEqual('string');
-            expect(obj.object.item4).toEqual(false);
-            expect(obj.array).toEqual(expect.arrayContaining([1, 2, 3, 4]));
+            return safeParse(file)
+                .then((d) => {
+                    const obj = d;
+                    expect(obj2.object.item).toEqual(2);
+                    expect(obj2.object.item2).toEqual('notAstring');
+                    expect(obj2.object.item4).toEqual(true);
+                    expect(obj2.array).toEqual(expect.arrayContaining([4, 3, 2, 1]));
+                    expect(obj.object.item).toEqual(1);
+                    expect(obj.object.item2).toEqual('string');
+                    expect(obj.object.item4).toEqual(false);
+                    expect(obj.array).toEqual(expect.arrayContaining([1, 2, 3, 4]));
+                });
         }
     });
 });

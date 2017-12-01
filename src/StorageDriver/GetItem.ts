@@ -85,31 +85,6 @@ const testBackup = (baseLocation: string, fileLocation: string, key: string, Sto
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(path.join(fileLocation, 'past'))) {
-            // read file to see if it is parsable, if not delete, if so
-            // copy and write. and resolve.
-            return ReadFile(path.join(fileLocation, 'past'))
-                .then((rawData) => safeParse(rawData))
-                .then((dataBool) => {
-                    if (dataBool === false) {
-                        // delete and resolve
-                        return deleteBackupFileAndDir(fileLocation, key, Storage);
-                    } else {
-                        // copy and write and return
-                        return copyAndReturn(key, baseLocation, fileLocation, dataBool);
-                    }
-                })
-                .then(resolve)
-                .catch(reject);
-        } else {
-            // remove the directory because 'past' does not exist and resolve.
-            return RmDir(fileLocation)
-                .then(() => {
-                    Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
-                    resolve();
-                })
-                .catch(reject);
-        }*/
     });
 };
 
@@ -211,50 +186,6 @@ const checkBackupAndReplace = (base: string, backup: string, key: string, Storag
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(backup)) {
-            // dir exists
-            if (existsSync(path.join(backup, 'past'))) {
-                // backup file exists
-                return ReadFile(path.join(backup, 'past'))
-                    .then((rawData) => safeParse(rawData))
-                    .then((dataBool) => {
-                        if (dataBool === false) {
-                            // delete file and directory and base location and resolve.
-                            // remove key from list
-                            return UnlinkFile(path.join(base, `${key}.db`))
-                                .then(() => UnlinkFile(path.join(backup, 'past')))
-                                .then(() => RmDir(backup))
-                                .then(() => {
-                                    Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
-                                    resolve();
-                                })
-                                .catch(reject);
-                        } else {
-                            // data is found and parsable. write to base and resolve data
-                            return copyAndReturn(key, base, backup, dataBool);
-                        }
-                    })
-                    .then(resolve)
-                    .catch(reject);
-            } else {
-                // backup does not exist
-                return RmDir(backup)
-                    .then(() => UnlinkFile(path.join(base, `${key}.db`)))
-                    .then(() => {
-                        Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
-                        resolve();
-                    })
-                    .catch(reject);
-            }
-        } else {
-            // delete base and remove key from all keys
-            return UnlinkFile(path.join(base, `${key}.db`))
-                .then(() => {
-                    Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
-                    resolve();
-                })
-                .catch(reject);
-        }*/
     });
 };
 
@@ -323,21 +254,5 @@ export const GetItem = (key: string, Storage: IStorageDriverExtended): Promise<a
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(path.join(baseLocation, `${key}.db`))) {
-            // base location was found.
-            return testLocationAndReturn(baseLocation, fileLocation, key, Storage)
-                .then(resolve)
-                .catch(reject);
-        } else {
-            // check file location to see if the directory exists.
-            if (existsSync(fileLocation)) {
-                return testBackup(baseLocation, fileLocation, key, Storage)
-                    .then(resolve)
-                    .catch(reject);
-            } else {
-                // no directory or file was found. resolve
-                resolve();
-            }
-        }*/
     });
 };

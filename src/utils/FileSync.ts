@@ -1,4 +1,4 @@
-import {fsync} from 'fs';
+import {fsync} from 'graceful-fs';
 
 export const FileSync = (fd: number): Promise<number> => {
     return new Promise((resolve, reject) => {

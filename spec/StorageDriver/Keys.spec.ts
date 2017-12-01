@@ -2,8 +2,8 @@ import {ElectronStorage} from '../../src/StorageDriver';
 import {Datastore, IDatastore} from 'tedb';
 import {IStorageDriverExtended} from '../../src/types';
 import {AppDirectory} from '../../src/AppDirectory';
-import {ClearDirectory, UnlinkFile, AppendFile} from '../../src/utils';
-import {existsSync} from 'fs';
+import {ClearDirectory, UnlinkFile, AppendFile, SafeWrite} from '../../src/utils';
+import {existsSync} from 'graceful-fs';
 const path = require('path');
 
 let Storage: IStorageDriverExtended;
@@ -26,6 +26,7 @@ afterAll(() => {
         .catch(console.log);
 });
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
 describe('testing keys', () => {
     let Eversion;
     let Bdir;
@@ -101,8 +102,8 @@ describe('testing keys', () => {
     test('removing a key and making an items current and backup unparsable', () => {
         expect.assertions(3);
         return UnlinkFile(file1)
-            .then(() => AppendFile(file2, '&'))
-            .then(() => AppendFile(path.join(backupFile2, 'past'), '&'))
+            .then(() => SafeWrite(file2, '&'))
+            .then(() => SafeWrite(path.join(backupFile2, 'past'), '&'))
             .then(() => TestDB.find({}).exec())
             .then((objs) => {
                 objs = objs as any[];

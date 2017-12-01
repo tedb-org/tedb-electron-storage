@@ -1,4 +1,4 @@
-import {ftruncate} from 'fs';
+import {ftruncate} from 'graceful-fs';
 
 export const TruncateFile = (fd: number, len: number): Promise<null> => {
     return new Promise((resolve, reject) => {

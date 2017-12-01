@@ -2,6 +2,12 @@
 # yarn lockfile v1
 
 
+"@types/graceful-fs@^4.1.2":
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.2.tgz#fbc9575dbcc6d1d91dd768d30c5fc0c19f6c50bd"
+  dependencies:
+    "@types/node" "*"
+
 "@types/jest@^21.1.5":
   version "21.1.5"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-21.1.5.tgz#3db93d069d12602ca115d3604550e15131d8eb7a"
@@ -4238,9 +4244,9 @@ tar@^2.2.1:
     fstream "^1.0.2"
     inherits "2"
 
-tedb@0.3.4:
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.3.4.tgz#9ac9be21fed0a81ff191efa7dd410a57115abccd"
+tedb@^0.4.3:
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.4.3.tgz#19574764e1d441e19236a5b28fb7350b41e6f0fc"
   dependencies:
     binary-type-tree "^1.2.3"
 

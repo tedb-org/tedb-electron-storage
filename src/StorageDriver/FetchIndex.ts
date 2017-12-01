@@ -103,28 +103,6 @@ const testBackup = (base: string, dir: string, key: string): Promise<any> => {
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(path.join(dir, 'past'))) {
-            // read file to see if it is parsable, if not delete, if so
-            // copy and write. and resolve
-            return ReadFile(path.join(dir, 'past'))
-                .then((rawData) => safeParse(rawData))
-                .then((dataBool) => {
-                    if (dataBool === false) {
-                        // delete and resolve
-                        return deleteBackupFileAndDir(dir);
-                    } else {
-                        // copy and write and return -> do not return '[{"key":null,"value":[]}]'
-                        return isBackupNull(key, base, dir, dataBool);
-                    }
-                })
-                .then(resolve)
-                .catch(reject);
-        } else {
-            // remove the dir because 'past' does not exist and resolve
-            return RmDir(dir)
-                .then(resolve)
-                .catch(reject);
-        }*/
     });
 };
 
@@ -213,36 +191,6 @@ const checkBackupAndReplace = (base: string, dir: string, key: string): Promise<
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(dir)) {
-            // backup exists
-            if (existsSync(path.join(dir, 'past'))) {
-                // backup file exists
-                return ReadFile(path.join(dir, 'past'))
-                    .then((rawData) => safeParse(rawData))
-                    .then((dataBool) => {
-                        if (dataBool === false) {
-                            // delete file and directory and base
-                            return RemoveAll(base, dir, key);
-                        } else {
-                            // data is found and parsable. write to base and resolve data
-                            return copyAndReturn(key, base, dir, dataBool);
-                        }
-                    })
-                    .then(resolve)
-                    .catch(reject);
-            } else {
-                // backup does not exist - delete backup dir and base location
-                return RmDir(dir)
-                    .then(() => UnlinkFile(path.join(base, `index_${key}.db`)))
-                    .then(resolve)
-                    .catch(reject);
-            }
-        } else {
-            // no backup dir - delete base
-            return UnlinkFile(path.join(base, `index_${key}.db`))
-                .then(resolve)
-                .catch(reject);
-        }*/
     });
 };
 
@@ -307,21 +255,5 @@ export const FetchIndex = (key: string, Storage: IStorageDriverExtended): Promis
             })
             .then(resolve)
             .catch(reject);
-        /*if (existsSync(path.join(baseLocation, `index_${key}.db`))) {
-            // base location was found.
-            return testLocationAndReturn(baseLocation, dirLocation, key)
-                .then(resolve)
-                .catch(reject);
-        } else {
-            // check file location to see if the directory of backup exists
-            if (existsSync(dirLocation)) {
-                return testBackup(baseLocation, dirLocation, key)
-                    .then(resolve)
-                    .catch(reject);
-            } else {
-                // no directory found
-                resolve();
-            }
-        }*/
     });
 };

@@ -1,4 +1,4 @@
-import {lstat, Stats} from 'fs';
+import {lstat, Stats} from 'graceful-fs';
 
 export const LStat = (path: string | Buffer): Promise<Stats> => {
     return new Promise((resolve, reject) => {

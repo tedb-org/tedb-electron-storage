@@ -1,4 +1,4 @@
-import {fstat, Stats} from 'fs';
+import {fstat, Stats} from 'graceful-fs';
 
 export const FileStat = (fd: number): Promise<Stats> => {
     return new Promise((resolve, reject) => {

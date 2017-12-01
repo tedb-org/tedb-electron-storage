@@ -1,4 +1,4 @@
-import {FlushStorage, IFlushStorageOptions, WriteFile, safeReadFile} from './index';
+import {FlushStorage, IFlushStorageOptions, WriteFile} from './index';
 const path = require('path');
 
 const safeFlush = (options: any, filename: string, data: any): Promise<null> => {
@@ -19,14 +19,7 @@ export const SafeWrite = (filename: string, data: string | Buffer | Uint8Array):
             filename: path.dirname(filename),
             isDir: true,
         };
-        return safeReadFile(filename)
-            .then((dataBool): Promise<null> => {
-                if (dataBool === false) {
-                    return new Promise((res) => res());
-                } else {
-                    return safeFlush(options, filename, data);
-                }
-            })
+        return safeFlush(options, filename, data)
             .then(resolve)
             .catch(reject);
     });

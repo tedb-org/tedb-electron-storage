@@ -8,4 +8,5 @@ export {RemoveItem} from './RemoveItem';
 export {StoreIndex, indexCheck} from './StoreIndex';
 export {RemoveIndex} from './RemoveIndex';
 export {ElectronStorage} from './Driver';
+export {CollectionSanitize} from './CollectionSanitize';
 export {Exists} from './Exists';

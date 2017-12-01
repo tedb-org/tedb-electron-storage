@@ -1,4 +1,4 @@
-import {appendFile} from 'fs';
+import {appendFile} from 'graceful-fs';
 
 export interface IAppendFileOptions {
     encoding?: string | null;
