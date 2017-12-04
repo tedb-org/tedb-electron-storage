@@ -1,5 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists} from '../utils';
+import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists, MakeDir} from '../utils';
 import {safeReadFile} from '../utils/safeReadFile';
 const path = require('path');
 
@@ -12,7 +12,16 @@ const path = require('path');
  */
 const removeBaseWriteBackup = (base: string, backupDir: string, data: string): Promise<null> => {
     return new Promise((resolve, reject) => {
-        return UnlinkFile(base)
+        return safeDirExists(backupDir)
+            .then((bool) => {
+                if (bool === false) {
+                    return MakeDir(backupDir);
+                } else {
+                    return new Promise((res) => res());
+                }
+            })
+            .then(() => UnlinkFile(base))
+            .then(() => EnsureDataFile(path.join(backupDir, 'past')))
             .then(() => SafeWrite(path.join(backupDir, 'past'), data))
             .then(resolve)
             .catch(reject);
@@ -31,7 +40,7 @@ export const indexCheck = (index: string) => {
 export const StoreIndex = (key: string, index: string, Storage: IStorageDriverExtended): Promise<any> => {
     return new Promise((resolve, reject) => {
         const baseLocation = Storage.collectionPath;
-        const fileLocation = path.join(Storage.collectionPath, Storage.version, 'states', `index_${key}`);
+        const fileLocation = path.join(baseLocation, Storage.version, 'states', `index_${key}`);
         /**
          * This is the method used when both are missing -> write data to both files
          * @param {string} StringifiedJSON
@@ -66,6 +75,7 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                 }
             })
             .then((dataBool) => {
+                // backup dir does not exist either
                 if (dataBool === false) {
                     if (indexCheck(index)) {
                         // neither backup or base file exists. - and index is empty
@@ -83,6 +93,7 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                     // no base but backup dir was found
                     if (indexCheck(stringIndex)) {
                         // current is empty write empty index to backup
+                        // need to check that backup dir exists and create if not.
                         return SafeWrite(path.join(fileLocation, 'past'), stringIndex);
                     } else {
                         // current is empty, index is not, write new data to both backup and current
