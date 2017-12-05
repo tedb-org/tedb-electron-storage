@@ -1,6 +1,7 @@
 import {IStorageDriverExtended} from '../types';
 import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists, MakeDir} from '../utils';
 import {safeReadFile} from '../utils/safeReadFile';
+import {makeDirCopy, backupDirWrite} from './';
 const path = require('path');
 
 /**
@@ -70,7 +71,8 @@ export const StoreIndex = (key: string, index: string, Storage: IStorageDriverEx
                         return removeBaseWriteBackup(path.join(baseLocation, `index_${key}.db`), fileLocation, stringIndex);
                     } else {
                         // index is not empty write current to backup and write new to current
-                        return CopyAndWrite(path.join(baseLocation, `index_${key}.db`), path.join(fileLocation, 'past'), stringIndex);
+                        return backupDirWrite(path.join(baseLocation, `index_${key}.db`), fileLocation, stringIndex);
+                        // return CopyAndWrite(path.join(baseLocation, `index_${key}.db`), path.join(fileLocation, 'past'), stringIndex);
                     }
                 }
             })

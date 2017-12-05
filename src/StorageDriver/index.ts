@@ -1,5 +1,5 @@
 export {GetItem} from './GetItem';
-export {SetItem} from './SetItem';
+export {SetItem, makeDirCopy, backupDirWrite} from './SetItem';
 export {Clear} from './Clear';
 export {FetchIndex} from './FetchIndex';
 export {Iterate} from './Iterate';

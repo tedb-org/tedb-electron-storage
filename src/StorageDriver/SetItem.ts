@@ -27,7 +27,8 @@ const checkNext = (fileLocation: string, baseLocation: string, data: string, ret
     });
 };
 
-const makeDirCopy = (base: string, dir: string, key: string, data: any): Promise<any> => {
+// also used in StoreIndex
+export const makeDirCopy = (base: string, dir: string, data: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         return MakeDir(dir)
             .then(() => CopyAndWrite(base, path.join(dir, 'past'), data))
@@ -36,12 +37,13 @@ const makeDirCopy = (base: string, dir: string, key: string, data: any): Promise
     });
 };
 
-const backupDirWrite = (base: string, dir: string, key: string, data: any): Promise<any> => {
+// also used in StoreIndex
+export const backupDirWrite = (base: string, dir: string, data: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         return safeDirExists(dir)
             .then((bool) => {
                 if (bool === false) {
-                    return makeDirCopy(base, dir, key, data);
+                    return makeDirCopy(base, dir, data);
                 } else {
                     return CopyAndWrite(base, path.join(dir, 'past'), data);
                 }
@@ -92,7 +94,7 @@ export const SetItem = (key: string, value: any, Storage: IStorageDriverExtended
                     return checkNext(fileLocation, path.join(baseLocation, `${key}.db`), stringValue, returnMany);
                 } else {
                     // file exists copy current file to backup location and write new data to current
-                    return backupDirWrite(path.join(baseLocation, `${key}.db`), fileLocation, key, stringValue);
+                    return backupDirWrite(path.join(baseLocation, `${key}.db`), fileLocation, stringValue);
                 }
             })
             .then(() => {
