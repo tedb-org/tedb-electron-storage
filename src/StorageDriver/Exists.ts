@@ -110,6 +110,8 @@ export const Exists = (obj: Isanitize, index: any, fieldName: string, Storage: I
                 }
             })
             .then(resolve)
-            .catch(reject);
+            .catch((err) => {
+                return reject(new Error(':::Storage::: Exists Error. ' + err.message));
+            });
     });
 };
