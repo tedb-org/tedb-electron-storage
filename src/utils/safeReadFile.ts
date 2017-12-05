@@ -1,4 +1,5 @@
 import {readFile} from 'graceful-fs';
+const os = require('os');
 
 export interface IsafeReadFileOptions {
     encoding?: string | null;
@@ -21,10 +22,14 @@ export const safeReadFile = (path: string, options?: IsafeReadFileOptions): Prom
         }
         readFile(path, Options, (err: any, data: string | Buffer) => {
             if (err) {
-                if (err.errno === -2 && err.code === 'ENOENT' && err.syscall === 'open') {
-                    resolve(false);
+                if (os.platform() === 'darwin') {
+                    if (err.errno === -2 && err.code === 'ENOENT' && err.syscall === 'open') {
+                        resolve(false);
+                    } else {
+                        return reject(err);
+                    }
                 } else {
-                    return reject(err);
+                    resolve(false);
                 }
             } else {
                 data = data as string;
