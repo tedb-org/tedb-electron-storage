@@ -10,11 +10,21 @@ let Storage: IStorageDriverExtended;
 let DB: IDatastore;
 let dbAppname: string;
 let dbName: string;
+
+let Storage2: IStorageDriverExtended;
+let DB2: IDatastore;
+let dbAppname2: string;
+let dbName2: string;
 beforeAll(() => {
     dbAppname = 'tedb-electron-storage-index';
     dbName = 'index-tests';
     Storage = new ElectronStorage(dbAppname, dbName);
     DB = new Datastore({storage: Storage});
+
+    dbAppname2 = 'tedb-electron-storage-index2';
+    dbName2 = 'index-tests2';
+    Storage2 = new ElectronStorage(dbAppname2, dbName2);
+    DB2 = new Datastore({storage: Storage2});
 });
 
 afterAll(() => {
@@ -22,6 +32,13 @@ afterAll(() => {
     ClearDirectory(toDelete.userData())
         .then(() => {
             console.log('deleted index-tests');
+        })
+        .catch(console.log);
+
+    const toDelete2 = new AppDirectory(dbAppname2);
+    ClearDirectory(toDelete2.userData())
+        .then(() => {
+            console.log('deleted index-tests2');
         })
         .catch(console.log);
 });
@@ -110,6 +127,34 @@ describe('testing the index set and fetch', () => {
             });
     });
 
+    describe('loading up from start with index', () => {
+        let Bdir2;
+        let Eversion2;
+        test('ensuring unique indices', () => {
+            expect.assertions(1);
+            Eversion2 = Storage2.version;
+            Bdir2 = path.join(Storage2.collectionPath, Eversion2, 'states');
+            return DB2.ensureIndex({fieldName: 'company.name', unique: false})
+                .then(() => {
+                    return DB2.ensureIndex({fieldName: 'username', unique: true});
+                })
+                .then(() => DB2.getIndices())
+                .then((indices) => {
+                    expect(indices.size).toEqual(2);
+                });
+        });
+        test('loading index', () => {
+            return DB2.insertIndex('company.name', companyNameObj1)
+                .then(() => DB2.insertIndex('username', usernameObj2))
+                .then(() => DB2.remove({}))
+                .then(() => DB2.sanitize())
+                .then(() => Promise.all(docs.map((d) => DB2.insert(d))))
+                .then((objs) => {
+                    expect(objs.length).toEqual(3);
+                });
+        });
+    });
+
     test('removing all items', () => {
         expect.assertions(1);
         return DB.remove({})
@@ -150,10 +195,10 @@ describe('testing the index set and fetch', () => {
             })
             .then(() => {
                 return DB.update({
-                        username: 'karma', age: 23,
-                            company: {
+                        username: 'joshua', age: 24,
+                        company: {
                             name: 'OED',
-                                age: 9,
+                            age: 56,
                         },
                         loggedIn: false,
                     }, {$set: {loggedIn: true}}, {

@@ -21,7 +21,11 @@ export const safeReadFile = (path: string, options?: IsafeReadFileOptions): Prom
         }
         readFile(path, Options, (err: any, data: string | Buffer) => {
             if (err) {
-                resolve(false);
+                if (err.errno === -2 && err.code === 'ENOENT' && err.syscall === 'open') {
+                    resolve(false);
+                } else {
+                    return reject(err);
+                }
             } else {
                 data = data as string;
                 resolve(data);

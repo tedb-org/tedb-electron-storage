@@ -1,4 +1,4 @@
-import {IStorageDriverExtended} from '../types';
+import {IStorageDriverExtended, Iexist, Isanitize} from '../types';
 import {SetItem, GetItem, Clear, FetchIndex, Iterate, Keys, RemoveIndex, RemoveItem, StoreIndex, Exists, CollectionSanitize} from './index';
 import {existsSync, mkdirSync} from 'graceful-fs';
 import {AppDirectory} from '../AppDirectory';
@@ -71,8 +71,8 @@ export class ElectronStorage implements IStorageDriverExtended {
         return Keys(this);
     }
 
-    public exists(key: string, index: any, fieldName: string): Promise<any> {
-        return Exists(key, index, fieldName, this);
+    public exists(obj: Isanitize, index: any, fieldName: string): Promise<Iexist> {
+        return Exists(obj, index, fieldName, this);
     }
 
     public collectionSanitize(keys: string[]): Promise<null> {

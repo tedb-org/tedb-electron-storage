@@ -1,5 +1,6 @@
-import {IStorageDriver} from './StorageDriver_BaseInterface';
+import {IStorageDriver, Isanitize, Iexist} from './StorageDriver_BaseInterface';
 
+export {Isanitize, Iexist};
 export type TiteratorCB = (key: string, value: any, iteratorNumber?: number) => any;
 
 export interface IStorageDriverExtended extends IStorageDriver {
@@ -14,7 +15,7 @@ export interface IStorageDriverExtended extends IStorageDriver {
     fetchIndex(key: string): Promise<any[]>;
     removeIndex(key: string): Promise<null>;
     iterate(iteratorCallback: TiteratorCB): Promise<any>;
-    exists(key: string, index: any, fieldName: string): Promise<any>;
+    exists(obj: Isanitize, index: any, fieldName: string): Promise<Iexist>;
     collectionSanitize(keys: string[]): Promise<null>;
     keys(): Promise<string[]>;
     clear(): Promise<null>;
