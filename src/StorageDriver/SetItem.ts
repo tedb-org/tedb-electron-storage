@@ -1,5 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {SafeWrite, MakeVersionDirPast, stringifyJSON, EnsureDataFile, CopyAndWrite, WriteNewPastandBase, safeReadFile, safeDirExists} from '../utils';
+import {SafeWrite, MakeVersionDirPast, stringifyJSON, EnsureDataFile, CopyAndWrite, WriteNewPastandBase, safeReadFile, safeDirExists, MakeDir} from '../utils';
 const path = require('path');
 
 /**
@@ -13,13 +13,37 @@ const path = require('path');
 const checkNext = (fileLocation: string, baseLocation: string, data: string, returnMany: any) => {
     return new Promise((resolve, reject) => {
         return safeDirExists(fileLocation)
-            .then((databool) => {
-                if (databool === false) {
+            .then((bool) => {
+                if (bool === false) {
                     // no backup write data to both current and backup
                     return MakeVersionDirPast(fileLocation, returnMany, data);
                 } else {
                     // the backup directory exists
                     return WriteNewPastandBase(fileLocation, returnMany, baseLocation, data);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const makeDirCopy = (base: string, dir: string, key: string, data: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return MakeDir(dir)
+            .then(() => CopyAndWrite(base, path.join(dir, 'past'), data))
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
+const backupDirWrite = (base: string, dir: string, key: string, data: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(dir)
+            .then((bool) => {
+                if (bool === false) {
+                    return makeDirCopy(base, dir, key, data);
+                } else {
+                    return CopyAndWrite(base, path.join(dir, 'past'), data);
                 }
             })
             .then(resolve)
@@ -68,7 +92,7 @@ export const SetItem = (key: string, value: any, Storage: IStorageDriverExtended
                     return checkNext(fileLocation, path.join(baseLocation, `${key}.db`), stringValue, returnMany);
                 } else {
                     // file exists copy current file to backup location and write new data to current
-                    return CopyAndWrite(path.join(baseLocation, `${key}.db`), path.join(fileLocation, 'past'), stringValue);
+                    return backupDirWrite(path.join(baseLocation, `${key}.db`), fileLocation, key, stringValue);
                 }
             })
             .then(() => {

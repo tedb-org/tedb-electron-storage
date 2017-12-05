@@ -72,14 +72,16 @@ describe('testing setItem', () => {
             return safeParse(file)
                 .then((d) => {
                     const obj = d;
-                    expect(obj2.object.item).toEqual(2);
-                    expect(obj2.object.item2).toEqual('notAstring');
-                    expect(obj2.object.item4).toEqual(true);
-                    expect(obj2.array).toEqual(expect.arrayContaining([4, 3, 2, 1]));
-                    expect(obj.object.item).toEqual(1);
-                    expect(obj.object.item2).toEqual('string');
-                    expect(obj.object.item4).toEqual(false);
-                    expect(obj.array).toEqual(expect.arrayContaining([1, 2, 3, 4]));
+
+                    expect(obj.object.item).toEqual(firstItem.object.item);
+                    expect(obj.object.item2).toEqual(firstItem.object.item2);
+                    expect(obj.object.item4).toEqual(firstItem.object.item4);
+                    expect(obj.array).toEqual(expect.arrayContaining(firstItem.array));
+
+                    expect(obj2.object.item).toEqual(secondItem.object.item);
+                    expect(obj2.object.item2).toEqual(secondItem.object.item2);
+                    expect(obj2.object.item4).toEqual(secondItem.object.item4);
+                    expect(obj2.array).toEqual(expect.arrayContaining(secondItem.array));
                 });
         }
     });
