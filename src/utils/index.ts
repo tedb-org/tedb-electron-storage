@@ -21,7 +21,6 @@ export {ClearDirectory} from './ClearDirectory';
 export {CopyAndWrite} from './CopyAndWrite';
 export {WriteNewPastandBase} from './WriteNewPastandBase';
 export {MakeVersionDirPast} from './MakeVersionDirPast';
-export {flattenStorageDriver} from './flattenStroageDriver';
 export {safeParse} from './safeParse';
 export {removeBackup} from './removeBackup';
 export {ReadFile} from './ReadFile';
@@ -29,3 +28,6 @@ export {safeStat} from './safeStat';
 export {safeDirExists} from './safeDirExists';
 export {safeRmDir} from './safeRmDir';
 export {RenameFile} from './RenameFile';
+
+export {flattenStorageDriver} from './flattenStroageDriver';
+export {rmArrDupsStorageDriver} from './rmArrDupsStorageDriver';

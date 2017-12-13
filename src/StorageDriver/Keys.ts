@@ -1,5 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {ReadDir, safeReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver, safeDirExists} from '../utils';
+import {ReadDir, safeReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver, rmArrDupsStorageDriver, safeDirExists} from '../utils';
 const path = require('path');
 
 const removeAll = (dirLocation: string, base: string, key: string): Promise<string[]> => {
@@ -78,9 +78,9 @@ const comboFileReadFMethod = (baseLocation: string, key: string): Promise<Icombo
             .catch(reject);
     });
 };
-const comboFileReadMethod = (dirLocation: string, dir: string | Buffer, key: string): Promise<IcomboRead> => {
+const comboFileReadMethod = (dirLocation: string, key: string): Promise<IcomboRead> => {
     return new Promise((resolve, reject) => {
-        return safeReadFile(path.join(dirLocation, dir, 'past'))
+        return safeReadFile(path.join(dirLocation, key, 'past'))
             .then((rawData) => {
                 if (rawData === false) {
                     resolve({key, rawData: '', read: false});
@@ -113,14 +113,13 @@ const comboFileParseMethod = (obj: IcomboRead): Promise<IcomboParse> => {
     });
 };
 
-const readBackupDir = (dirLocation: string, baseLocation: string): Promise<string[][]> => {
+const checkBackupFile = (dirLocation: string, baseLocation: string, key: string): Promise<string[][]> => {
     return new Promise((resolve, reject) => {
-        return ReadDir(dirLocation)
-            .then((directories) => {
-                // no Need to filter out index_ or version since files being searched were already filtered
-                return Promise.all(directories.map((dir) => {
-                    return comboFileReadMethod(dirLocation, dir, dir);
-                    // return ReadFile(path.join(dirLocation, dir, 'past'));
+        return ReadDir(path.join(dirLocation, key))
+            .then((keyDirFiles) => {
+                return Promise.all(keyDirFiles.map((ignoreParam) => {
+                    // Ignore the file incoming. QUICK FIX -> Only reading in the past file
+                    return comboFileReadMethod(dirLocation, key);
                 }));
             })
             .then((filesRawData: IcomboRead[]) => {
@@ -131,7 +130,6 @@ const readBackupDir = (dirLocation: string, baseLocation: string): Promise<strin
                         return comboFileParseMethod(obj);
                     }
                 }));
-                // return Promise.all(filesRawData.map((rawData) => safeParse(rawData)));
             })
             .then((filesData: IcomboParse[]): Promise<string[][]> => {
                 return Promise.all(filesData.map((fileData) => {
@@ -149,11 +147,29 @@ const readBackupDir = (dirLocation: string, baseLocation: string): Promise<strin
     });
 };
 
+const checkBackupDir = (dirLocation: string, baseLocation: string, key: string): Promise<string[][]> => {
+    return new Promise((resolve, reject) => {
+        return safeDirExists(path.join(dirLocation, key))
+            .then((bool): Promise<string[][]> => {
+                if (bool === false) {
+                    // key directory backup does not exits. Remove base
+                    // since coming here means that the base location was unparsable
+                    return removeBaseButreturnDoubleArr(baseLocation, key);
+                } else {
+                    // it is found. safe read past file and parse
+                    return checkBackupFile(dirLocation, baseLocation, key);
+                }
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+};
+
 // need to make what I did for the backup up here
 // a separate method to return objects of information to
 // save the key
 
-const removeBaseButreturDoubleArr = (base: string, key: string): Promise<string[][]> => {
+const removeBaseButreturnDoubleArr = (base: string, key: string): Promise<string[][]> => {
     return new Promise((resolve, reject) => {
         return EnsureDataFile(path.join(base, `${key}.db`))
             .then(() => UnlinkFile(path.join(base, `${key}.db`)))
@@ -178,10 +194,10 @@ const readBackupLocation = (dirLocation: string, baseLocation: string, obj: Icom
                 if (bool === false) {
                     // remove base location file that
                     // was found but unparsable
-                    return removeBaseButreturDoubleArr(baseLocation, obj.key);
+                    return removeBaseButreturnDoubleArr(baseLocation, obj.key);
                     // return new Promise((res) => res([[]]));
                 } else {
-                    return readBackupDir(dirLocation, baseLocation);
+                    return checkBackupDir(dirLocation, baseLocation, obj.key);
                 }
             })
             .then(resolve)
@@ -212,7 +228,6 @@ const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorage
                         return new Promise((rs) => rs({key: obj.key, parsedData: obj.rawData, read: obj.read}));
                     } else {
                         return comboFileParseMethod(obj);
-                        // return safeParse(rawData);
                     }
                 }));
             })
@@ -234,58 +249,7 @@ const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorage
                 incomingKeys.forEach((key: any) => {
                     KEYS = [key, ...KEYS];
                 });
-                resolve([...Storage.allKeys, ...KEYS]);
-            })
-            .catch(reject);
-    });
-};
-
-const readKeysSafetyBackup = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-        // if this is called backup directory is already verified to exist
-        return ReadDir(dir)
-            .then((directories) => {
-                const reg = new RegExp('index_');
-                // don't try and read index directories
-                const noIndexDir = directories.filter((Dir) => {
-                    const thisFile = String(Dir);
-                    if (!reg.test(thisFile)) {
-                        return Dir;
-                    }
-                });
-                // read in each backup file
-                return Promise.all(noIndexDir.map((dirkey) => {
-                    return comboFileReadMethod(dir, dirkey, dirkey);
-                }));
-            })
-            .then((filesRawData: IcomboRead[]) => {
-                return Promise.all(filesRawData.map((obj: IcomboRead): Promise<IcomboParse> => {
-                    if (obj.read === false) {
-                        return new Promise((rs) => rs({key: obj.key, parsedData: obj.rawData, read: obj.read}));
-                    } else {
-                        return comboFileParseMethod(obj);
-                    }
-                }));
-            })
-            .then((filesData: IcomboParse[]): Promise<string[][]> => {
-                return Promise.all(filesData.map((fd) => {
-                    if (fd.parsedData === false) {
-                        // obviously the backup file is not readable remove it and
-                        // the backup directory -> base already does not exist
-                        return RemoveDirectoryAndFile(base, dir, fd.key);
-                    } else {
-                        // resolve the actual key
-                        return WriteBackupToBaseReturn(fd.parsedData, base);
-                    }
-                }));
-            })
-            .then((keys: string[][]) => {
-                const incomingKeys = flattenStorageDriver(keys);
-                let KEYS: string[] = [];
-                incomingKeys.forEach((key: any) => {
-                    KEYS = [key, ...KEYS];
-                });
-                resolve([...Storage.allKeys, ...KEYS]);
+                resolve(rmArrDupsStorageDriver([...Storage.allKeys, ...KEYS]));
             })
             .catch(reject);
     });
@@ -306,7 +270,7 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: ISto
             .then((bool): Promise<string[]> => {
                 if (bool === false) {
                     // check backup just like readAllLocations does for the base dir.
-                    return readBackupAllLocations(baseLocation, dirLocation, Storage);
+                    return new Promise((res) => res([]));
                 } else {
                     return readAllDir(baseLocation, dirLocation, Storage);
                 }
@@ -315,50 +279,6 @@ const readKeysSafety = (baseLocation: string, dirLocation: string, Storage: ISto
                 keys = keys.filter((k) => k !== undefined);
                 resolve(keys);
             })
-            .catch(reject);
-    });
-};
-
-const readTheBackupDir = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-        return ReadDir(dir)
-            .then((directories) => {
-                const reg = new RegExp('index_');
-                // don't try and read index directories
-                const dirs = directories.filter((directoryKey) => {
-                    const thisDir = String(directoryKey);
-                    if (!reg.test(thisDir)) {
-                        return directoryKey;
-                    }
-                });
-                if (dirs.length === Storage.allKeys.length) {
-                    // return keys because they match current length
-                    return Storage.allKeys;
-                } else {
-                    // key lengths did not match up -> acts just like
-                    // readKeysSafety except for the backup directory
-                    // if this is called no need to check dir it already exists
-                    return readKeysSafetyBackup(base, dir, Storage);
-                }
-            })
-            .then(resolve)
-            .catch(reject);
-    });
-};
-
-const readBackupAllLocations = (base: string, dir: string, Storage: IStorageDriverExtended): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-        return safeDirExists(dir)
-            .then((bool): Promise<string[]> => {
-                if (bool === false) {
-                    // this is called when both the base directory and backup are empty
-                    return new Promise((res) => res([]));
-                } else {
-                    // backup dir has values
-                    return readTheBackupDir(base, dir, Storage);
-                }
-            })
-            .then(resolve)
             .catch(reject);
     });
 };
@@ -394,8 +314,8 @@ const checkKeysLocations = (base: string, dir: string, Storage: IStorageDriverEx
         return safeDirExists(base)
             .then((bool): Promise<string[]> => {
                 if (bool === false) {
-                    // check backup just like readAllLocations does for the base dir.
-                    return readBackupAllLocations(base, dir, Storage);
+                    // the backup dir is after the base so if no base no backup
+                    return new Promise((res) => res([]));
                 } else {
                     // base location exists check files and check resulting length
                     return readAllLocations(base, dir, Storage);

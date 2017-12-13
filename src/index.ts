@@ -26,11 +26,13 @@ export {
     CopyAndWrite,
     WriteNewPastandBase,
     MakeVersionDirPast,
-    flattenStorageDriver,
     safeParse,
     RenameFile,
     removeBackup,
     safeStat,
     safeDirExists,
     safeRmDir,
+
+    flattenStorageDriver,
+    rmArrDupsStorageDriver,
 } from './utils';
