@@ -36,7 +36,7 @@ Exports with the key term `safe` will not reject and instead return `false` for 
 * <a href="#installation">Installation</a>
 * <a href="#usage">Usage</a>
 * <a href="#storage-driver-upfront-info">Storage Driver Upfront Info</a>
-* <a href="#using-teDB-and-tedb-electron-storage-in-tandem">Using TeDB and TeDB-Electron-Storage in Tandem</a>
+* <a href="#using-tedb-and-tedb-electron-storage-in-tandem">Using TeDB and TeDB-Electron-Storage in Tandem</a>
 * <a href="#creating-a-db-and-collection">Creating a DB and Collection</a>
 * <a href="#utils-and-benefits-of-this-storage-driver">Utils and Benefits of this Storage Driver</a>
 
