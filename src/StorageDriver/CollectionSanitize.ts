@@ -1,12 +1,37 @@
 import {IStorageDriverExtended} from '../types';
-import {ReadDir, UnlinkFile, RmDir, safeDirExists} from '../utils';
+import {ReadDir, UnlinkFile, RmDir, safeDirExists, EnsureDataFile} from '../utils';
 const path = require('path');
+
+const checkBaseFileRemove = (baseFile: string) => {
+    return new Promise((resolve, reject) => {
+        return EnsureDataFile(baseFile)
+            .then(() => UnlinkFile(baseFile))
+            .then(() => resolve())
+            .catch(reject);
+    });
+};
+
+const checkBackupFilekAndRemoveAll = (baseFile: string, dir: string) => {
+    return new Promise((resolve, reject) => {
+        return EnsureDataFile(path.join(dir, 'past'))
+            .then(() => UnlinkFile(path.join(dir, 'past')))
+            .then(() => RmDir(dir))
+            .then(() => checkBaseFileRemove(baseFile))
+            .then(resolve)
+            .catch(reject);
+    });
+};
 
 const removeAll = (dirLocation: string, base: string, key: string, Storage: IStorageDriverExtended): Promise<null> => {
     return new Promise((resolve, reject) => {
-        return UnlinkFile(path.join(dirLocation, key, 'past'))
-            .then(() => UnlinkFile(path.join(base, `${key}.db`)))
-            .then(() => RmDir(path.join(dirLocation, key)))
+        return safeDirExists(path.join(dirLocation, key))
+            .then((bool) => {
+                if (bool === false) {
+                    return checkBaseFileRemove(path.join(base, `${key}.db`));
+                } else {
+                    return checkBackupFilekAndRemoveAll(path.join(base, `${key}.db`), path.join(dirLocation, key));
+                }
+            })
             .then(() => {
                 try {
                     Storage.allKeys = Storage.allKeys.filter((cur) => cur !== key);
