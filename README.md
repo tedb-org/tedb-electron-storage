@@ -458,6 +458,8 @@ export const Users = (): Promise<Collection> => {
 ## Utils and Benefits of this Storage Driver
 The utilities are very much tied to this package and don't see much being updated to them unless more error handling fixes come about. Some methods will be removed from this package and other packages under the tedb-org to create a new tedb-org/tedb-utils package in the future which will have all the utils and their tests all on one localized place. 
 
+The benefits of using this package and TeDB are that it is written in TypeScript and all the types are available. Also TypeScript can be used to create an `interface` or `type` that acts as a schema for your collection. Once you query data you simply state the return type as the `type/interface` you declared. TeDB and this package will store your object exactly as you send it so there are no modifications to your object during save. 
+
 There is one thing I have to say about this package and that is don't blame the package right away for errors and issues. When creating your own database logically think about the way it is functioning before submitting an error. 
 
 This package and TeDB are both being used in production for Electron. As issues come up we will be available to discussion and fixes if need be. If this package does not suite your needs please create your own and make a pull request to TeDB to add it to our list of Storage Drivers. A React Native storage driver is in the future so keep an eye out.
