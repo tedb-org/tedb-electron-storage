@@ -4244,6 +4244,10 @@ tar@^2.2.1:
     fstream "^1.0.2"
     inherits "2"
 
+tedb-utils@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/tedb-utils/-/tedb-utils-0.0.1.tgz#302496a2dba9c5c99d45ce5f3d6470c2e8ef1939"
+
 tedb@^0.4.4:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/tedb/-/tedb-0.4.4.tgz#aa8a78a785d14d31efcb454d7689b6d038124e93"

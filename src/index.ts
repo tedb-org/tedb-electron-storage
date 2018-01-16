@@ -32,7 +32,4 @@ export {
     safeStat,
     safeDirExists,
     safeRmDir,
-
-    flattenStorageDriver,
-    rmArrDupsStorageDriver,
 } from './utils';

@@ -1,6 +1,7 @@
 import {IStorageDriverExtended} from '../types';
-import {ReadDir, safeReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, flattenStorageDriver, rmArrDupsStorageDriver, safeDirExists} from '../utils';
+import {ReadDir, safeReadFile, RmDir, UnlinkFile, EnsureDataFile, SafeWrite, safeParse, safeDirExists} from '../utils';
 const path = require('path');
+import {flattenArr, rmArrDups} from 'tedb-utils';
 
 const removeAll = (dirLocation: string, base: string, key: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
@@ -244,12 +245,8 @@ const readAllDir = (baseLocation: string, dirLocation: string, Storage: IStorage
                 }));
             })
             .then((keys: string[][][]) => {
-                const incomingKeys = flattenStorageDriver(keys);
-                let KEYS: string[] = [];
-                incomingKeys.forEach((key: any) => {
-                    KEYS = [key, ...KEYS];
-                });
-                resolve(rmArrDupsStorageDriver([...Storage.allKeys, ...KEYS]));
+                const incomingKeys = flattenArr(keys);
+                resolve(rmArrDups([...Storage.allKeys, ...incomingKeys]));
             })
             .catch(reject);
     });

@@ -1,6 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {UnlinkFile, removeBackup} from '../utils';
-import {safeReadFile} from '../utils/safeReadFile';
+import {UnlinkFile, removeBackup, safeReadFile} from '../utils';
 const path = require('path');
 
 /**

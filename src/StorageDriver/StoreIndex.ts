@@ -1,6 +1,5 @@
 import {IStorageDriverExtended} from '../types';
-import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists, MakeDir} from '../utils';
-import {safeReadFile} from '../utils/safeReadFile';
+import {stringifyJSON, EnsureDataFile, CopyAndWrite, SafeWrite, WriteNewPastandBase, MakeVersionDirPast, UnlinkFile, safeDirExists, MakeDir, safeReadFile} from '../utils';
 import {makeDirCopy, backupDirWrite} from './';
 const path = require('path');
 

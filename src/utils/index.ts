@@ -28,6 +28,3 @@ export {safeStat} from './safeStat';
 export {safeDirExists} from './safeDirExists';
 export {safeRmDir} from './safeRmDir';
 export {RenameFile} from './RenameFile';
-
-export {flattenStorageDriver} from './flattenStroageDriver';
-export {rmArrDupsStorageDriver} from './rmArrDupsStorageDriver';
